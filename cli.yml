@@ -28,6 +28,7 @@ args:
       short: i
       long: input
       value_name: INPUT
-      help: Directory with songs/playlists to query from (can take various folders separated by ;)
+      help: Directory with songs/playlists to query from (can be repeated if needed)
       required: true
       takes_value: true
+      multiple: true

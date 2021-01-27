@@ -48,7 +48,7 @@ Support for:
 - `-t` / `--type` : local or spotify/soundcloud, etc (support local only for now, default to local)
 - `-o` / `--output` : file to write the playlist to (if not specified send to stdout);
 - `-q` / `--query` : query to execute;
-- `-i` / `--input` : directory with songs/playlists to query from (can take various folders separated by ;)
+- `-i` / `--input` : directory with songs/playlists to query from (can be repeated if needed)
 
 ## Progress
 
