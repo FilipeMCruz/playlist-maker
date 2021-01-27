@@ -39,16 +39,17 @@ Support for:
 - Support only id3 tags, for now;
 - Multithreaded;
 - Support local stored songs only, for now;
-- Decouple everything so that it is easier to extend (spotify playlists, different music tags, work as a plugin in some music app, etc)
+- Decouple everything so that it is easier to extend (spotify playlists, different music tags, work as a plugin in some
+  music app, etc)
 
 ## Console Args
 
-- `-t` / `--type` : local or spotify/soundcloud, etc (support local only for now, default to local)
 - `-h` / `--help` : menu with some information;
+- `-t` / `--type` : local or spotify/soundcloud, etc (support local only for now, default to local)
 - `-o` / `--output` : file to write the playlist to (if not specified send to stdout);
 - `-q` / `--query` : query to execute;
-- `-i` / `--input` : directory with songs to query from;
+- `-i` / `--input` : directory with songs/playlists to query from (can take various folders separated by ;)
 
 ## Progress
 
-None.
+- Implemented command line parser with clap;
