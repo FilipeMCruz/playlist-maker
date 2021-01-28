@@ -1,17 +1,15 @@
 
-query = _{ "Play(" ~ token_2 ~ ")" }
+query = _{ "Play(" ~ query_expr ~ ")" }
 
-token_2 = { token ~ (operator ~ token)* }
+query_expr = { token ~ expand_token }
 
-rec_token = { not? ~ start_par ~ token_2 ~ end_par }
+expand_token = { (operator ~ token)* }
 
-token = { rec_token | complex_token }
+rec_token = { not? ~ start_par ~ query_expr ~ end_par }
 
-// token_2 = { ( not? ~ start_par ~  token ~ (operator ~ token_2)*  ~ end_par ) | ( token ~ (operator ~ token_2)* ) }
+token = { rec_token | simple_token }
 
-// token = { not? ~ ( playlist | tag) }
-
-complex_token = { not? ~ ( playlist | tag) }
+simple_token = { not? ~ ( playlist | tag) }
 
 start_par = { "(" }
 

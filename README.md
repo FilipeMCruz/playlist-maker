@@ -49,6 +49,7 @@ Support for:
 - `-o` / `--output` : file to write the playlist to (if not specified send to stdout);
 - `-q` / `--query` : query to execute;
 - `-i` / `--input` : directory with songs/playlists to query from (can be repeated if needed)
+- `-p` / `--playlist` : path to playlist to be used in the query
 
 ## Progress
 

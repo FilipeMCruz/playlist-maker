@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 pub struct Playlist {
+    pub name: String,
     pub songs: Vec<PathBuf>
 }
 

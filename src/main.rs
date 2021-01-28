@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate pest_derive;
 
+use std::borrow::BorrowMut;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::exit;
 
@@ -37,12 +40,11 @@ fn is_song(entry: &DirEntry) -> bool {
     entry.path().is_dir() ||
         entry.file_name()
             .to_str()
-            .map(|s| s.ends_with("mp3") || s.ends_with("m3u"))
+            .map(|s| s.ends_with("mp3"))
             .unwrap_or(false)
 }
 
-fn walk(dir: &str) -> Vec<PathBuf> {
-    let mut ret = Vec::new();
+fn walk(dir: &str, ret: &mut Vec<PathBuf>) {
     let walker = WalkDir::new(dir).into_iter();
     for entry in walker.filter_entry(|e| is_song(e)) {
         let entry = entry.unwrap();
@@ -50,7 +52,6 @@ fn walk(dir: &str) -> Vec<PathBuf> {
             ret.push(entry.path().to_owned());
         }
     }
-    ret
 }
 
 fn main() {
@@ -74,50 +75,88 @@ fn main() {
             println!("Folder {} does not exist!", dir);
             exit(2);
         } else {
-            vec = walk(dir);
+            walk(dir, vec.borrow_mut());
         }
         inputs = inputs + dir + ";";
     }
     println!("Value for input: {}\nFound entries: {}", inputs, vec.len());
+
+    let mut playlist_vec = Vec::new();
+    let mut playlists_opt = matches.values_of("playlist");
+    if playlists_opt.is_some() {
+        let playlists = playlists_opt.unwrap();
+        let mut playlists_str: String = String::new();
+        for playlist in playlists {
+            let path = Path::new(playlist);
+            if !path.exists() || !path.extension().unwrap().eq("m3u") {
+                println!("playlist {} does not exist or is invalid (not m3u)!", playlist);
+                exit(2);
+            } else {
+                let file = File::open(path).unwrap();
+                let reader = BufReader::new(file);
+                let mut songs = Vec::new();
+                for line in reader.lines() {
+                    songs.push(PathBuf::from(line.unwrap()));
+                }
+                let playlist = Playlist {
+                    name: path.file_stem().unwrap().to_str().unwrap().to_string(),
+                    songs,
+                };
+                playlist_vec.push(playlist);
+            }
+            playlists_str = playlists_str + playlist + ";";
+        }
+        println!("Value for playlists: {}\nFound entries: {}", playlists_str, playlist_vec.len());
+    }
 
     let parse_result = ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
         println!("{}", error);
         exit(2);
     });
 
-    for token_2 in parse_result {
-        match token_2.as_rule() {
-            Rule::token_2 => {
-                println!("{}", token_2);
-                //TODO: for now only one token is accepted
-                let token = token_2.into_inner()
-                    .next() //get token_2
-                    .unwrap()
-                    .into_inner()
-                    .next() //get first token
-                    .unwrap();
-                let vec = filter_token(&vec, token);
-                for song in vec.iter() {
-                    println!("{}", song.as_path().display());
+    for query_expr in parse_result {
+        match query_expr.as_rule() {
+            Rule::query_expr => {
+                let result = filter_query_expr(&vec, &playlist_vec, query_expr.into_inner()
+                    .next() //get query_expr
+                    .unwrap());
+                for song in result.iter() {
+                    //println!("{}", song.as_path().display());
                 }
             }
             _ => {
-                println!("Error parsing query: {}", token_2.as_str());
+                println!("Error parsing query: {}", query_expr.as_str());
                 exit(2);
             }
         }
     }
 }
 
+fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+    //TODO: for now only one token is accepted
+    let mut pairs = pair.into_inner();
+    let token = pairs.next().unwrap(); //get first token
+    let expand_token_opt = pairs.next(); //get expand_token
+    println!("token: {}", token.as_str());
+    let final_songs = filter_token(&vec, &playlist_vec, token);
 
-fn filter_token(vec: &Vec<PathBuf>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+    if expand_token_opt.is_none() {
+        return final_songs;
+    } else {
+        let expand_token = expand_token_opt.unwrap();
+        println!("expand_token: {}", expand_token);
+        unimplemented!("No operator support for now")
+    }
+}
+
+fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
     match pair.as_rule() {
-        Rule::complex_token => {
+        Rule::simple_token => {
             let mut pairs = pair.into_inner();
             let first = pairs.next().unwrap();
             if first.as_str() == "!" { // check if it's a _not_
                 let second = pairs.next().unwrap(); // playlist or tag
-                let to_remove = filter_simple_token(vec, second);
+                let to_remove = filter_simple_token(vec, playlist_vec, second);
                 let mut ret_vec = Vec::new();
                 for song in vec {
                     if !to_remove.contains(song) {
@@ -126,11 +165,11 @@ fn filter_token(vec: &Vec<PathBuf>, pair: pest::iterators::Pair<Rule>) -> Vec<Pa
                 }
                 ret_vec
             } else {
-                filter_simple_token(vec, first)
+                filter_simple_token(vec, playlist_vec, first)
             }
         }
         Rule::rec_token => {
-            println!("{}", pair);
+            println!("rec_token: {}", pair);
             unimplemented!("No parenthesis support for now")
         }
         _ => {
@@ -140,16 +179,20 @@ fn filter_token(vec: &Vec<PathBuf>, pair: pest::iterators::Pair<Rule>) -> Vec<Pa
     }
 }
 
-fn filter_simple_token(vec: &Vec<PathBuf>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+fn filter_simple_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
     match pair.as_rule() {
         Rule::playlist => {
-            let first = pair.into_inner().next().unwrap();
-            println!("{}", first);
-            // get playlist content and parse it to vec<str>
-            let playlist = Playlist {
-                songs: Vec::new()
-            };
-            playlist.filter(vec)
+            let first = pair.into_inner()
+                .next()// get string_literal
+                .unwrap()
+                .into_inner()
+                .next()// get string
+                .unwrap()
+                .as_str().to_string();
+            playlist_vec.iter()
+                .find(|&playlist| playlist.name == first)
+                .unwrap()
+                .filter(vec)
         }
         Rule::tag => {
             let mut pair = pair.into_inner();

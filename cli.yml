@@ -28,7 +28,15 @@ args:
       short: i
       long: input
       value_name: INPUT
-      help: Directory with songs/playlists to query from (can be repeated if needed)
+      help: Directory with songs to query from (can be repeated if needed)
       required: true
+      takes_value: true
+      multiple: true
+  - playlist:
+      short: p
+      long: playlist
+      value_name: PLAYLIST
+      help: Path to playlist to be used in the query
+      required: false
       takes_value: true
       multiple: true
