@@ -1,0 +1,33 @@
+
+query = _{ "Play" ~ start_par ~ token_2 ~ end_par }
+
+token_2 = { ( token ~ (operator ~ token)* ) }
+
+token = { ( not? ~ start_par ~ token_2 ~ end_par) | (not? ~ ( playlist | tag)) }
+
+start_par = { "(" }
+
+end_par = { ")" }
+
+not = { "!" }
+
+operator = { and | or }
+
+and = { "&" }
+
+or = { "|" }
+
+regex = { "R_" ~ tag }
+
+tag = { regex | string ~ "(" ~ string_literal ~ ")" }
+
+playlist = { "InPlaylist(" ~ string_literal ~ ")" }
+
+string_literal = ${ ( "\"" ~ string ~ "\"" | "'" ~ string ~ "'" ) }
+
+string = @{ char* }
+
+char = { ASCII_ALPHANUMERIC | WHITESPACE | "_" }
+
+WHITESPACE = _{ " " | "\t" }
+any = _{ ANY }
