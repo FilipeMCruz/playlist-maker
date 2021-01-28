@@ -53,3 +53,4 @@ Support for:
 ## Progress
 
 - Implemented command line parser with clap;
+- Implemented grammar to validate query;

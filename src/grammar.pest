@@ -1,9 +1,17 @@
 
-query = _{ "Play" ~ start_par ~ token_2 ~ end_par }
+query = _{ "Play(" ~ token_2 ~ ")" }
 
-token_2 = { ( token ~ (operator ~ token)* ) }
+token_2 = { token ~ (operator ~ token)* }
 
-token = { ( not? ~ start_par ~ token_2 ~ end_par) | (not? ~ ( playlist | tag)) }
+rec_token = { not? ~ start_par ~ token_2 ~ end_par }
+
+token = { rec_token | complex_token }
+
+// token_2 = { ( not? ~ start_par ~  token ~ (operator ~ token_2)*  ~ end_par ) | ( token ~ (operator ~ token_2)* ) }
+
+// token = { not? ~ ( playlist | tag) }
+
+complex_token = { not? ~ ( playlist | tag) }
 
 start_par = { "(" }
 
@@ -17,9 +25,9 @@ and = { "&" }
 
 or = { "|" }
 
-regex = { "R_" ~ tag }
+regex = { "R_" }
 
-tag = { regex | string ~ "(" ~ string_literal ~ ")" }
+tag = { regex? ~ string ~ "(" ~ string_literal ~ ")" }
 
 playlist = { "InPlaylist(" ~ string_literal ~ ")" }
 
