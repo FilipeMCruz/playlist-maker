@@ -1,17 +1,17 @@
 use std::path::PathBuf;
 
 #[derive(PartialEq, Eq)]
-enum OperatorType {
+pub enum OperatorType {
     OR,
     AND,
 }
 
-struct Operator {
-    operator_type: OperatorType,
+pub struct Operator {
+    pub operator_type: OperatorType,
 }
 
 impl Operator {
-    fn filter(&self, first: Vec<PathBuf>, second: Vec<PathBuf>) -> Vec<PathBuf> {
+    pub fn filter(&self, first: &Vec<PathBuf>, second: &Vec<PathBuf>) -> Vec<PathBuf> {
         let mut filter = Vec::new();
         if self.operator_type == OperatorType::OR {
             for song in first.iter() {

@@ -14,6 +14,7 @@ use walkdir::{DirEntry, WalkDir};
 
 use playlist::Playlist;
 
+use crate::operator::{Operator, OperatorType};
 use crate::song_tag::SongTag;
 
 mod song_tag;
@@ -82,7 +83,7 @@ fn main() {
     println!("Value for input: {}\nFound entries: {}", inputs, vec.len());
 
     let mut playlist_vec = Vec::new();
-    let mut playlists_opt = matches.values_of("playlist");
+    let playlists_opt = matches.values_of("playlist");
     if playlists_opt.is_some() {
         let playlists = playlists_opt.unwrap();
         let mut playlists_str: String = String::new();
@@ -117,11 +118,9 @@ fn main() {
     for query_expr in parse_result {
         match query_expr.as_rule() {
             Rule::query_expr => {
-                let result = filter_query_expr(&vec, &playlist_vec, query_expr.into_inner()
-                    .next() //get query_expr
-                    .unwrap());
+                let result = filter_query_expr(&vec, &playlist_vec, query_expr);
                 for song in result.iter() {
-                    //println!("{}", song.as_path().display());
+                    println!("{}", song.as_path().display());
                 }
             }
             _ => {
@@ -134,18 +133,41 @@ fn main() {
 
 fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
     //TODO: for now only one token is accepted
+    println!("pair: {}", pair.as_str());
     let mut pairs = pair.into_inner();
-    let token = pairs.next().unwrap(); //get first token
-    let expand_token_opt = pairs.next(); //get expand_token
-    println!("token: {}", token.as_str());
-    let final_songs = filter_token(&vec, &playlist_vec, token);
+    let token = pairs
+        .next()//get query_expr
+        .unwrap()
+        .into_inner()
+        .next()//get token
+        .unwrap();
+    let mut final_songs = filter_token(&vec, &playlist_vec, token);
 
-    if expand_token_opt.is_none() {
-        return final_songs;
-    } else {
-        let expand_token = expand_token_opt.unwrap();
-        println!("expand_token: {}", expand_token);
-        unimplemented!("No operator support for now")
+    loop {
+        let next = pairs.next();
+        if next.is_none() {
+            return final_songs;
+        }
+        let operator: Operator;
+        if next.unwrap().as_str() == "&" {
+            operator = Operator {
+                operator_type: OperatorType::AND
+            };
+            let token = pairs.next().unwrap();
+            let second_songs = filter_token(&final_songs, &playlist_vec, token.into_inner()
+                .next()//get token
+                .unwrap());
+            final_songs = operator.filter(&final_songs, &second_songs);
+        } else {
+            operator = Operator {
+                operator_type: OperatorType::OR
+            };
+            let token = pairs.next().unwrap();
+            let second_songs = filter_token(&vec, &playlist_vec, token.into_inner()
+                .next()//get token
+                .unwrap());
+            final_songs = operator.filter(&final_songs, &second_songs);
+        }
     }
 }
 
@@ -173,7 +195,7 @@ fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::it
             unimplemented!("No parenthesis support for now")
         }
         _ => {
-            println!("Error parsing filter_token: {} - {}", pair.to_string(), pair.as_str());
+            println!("Error parsing token: {} - {}", pair.to_string(), pair.as_str());
             exit(2);
         }
     }

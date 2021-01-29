@@ -1,11 +1,9 @@
 
 query = _{ "Play(" ~ query_expr ~ ")" }
 
-query_expr = { token ~ expand_token }
+query_expr = { token ~ (operator ~ token)* }
 
-expand_token = { (operator ~ token)* }
-
-rec_token = { not? ~ start_par ~ query_expr ~ end_par }
+rec_token = { not? ~ start_par ~ query_expr ~ end_par } //TODO: missing this one
 
 token = { rec_token | simple_token }
 

@@ -14,7 +14,6 @@ impl SongTag {
         if metadata_tag_result.is_ok() {
             let metadata_tag = metadata_tag_result.unwrap();
             if !self.is_regex {
-                //println!("Current Artist named {}", metadata_tag.artist().unwrap_or(""));
                 return match self.tag_type.to_lowercase().as_ref() {
                     "artist" => metadata_tag.artist().unwrap_or("") == self.metadata,
                     "album" => metadata_tag.album().unwrap_or("") == self.metadata,
@@ -33,7 +32,7 @@ impl SongTag {
     }
 
     pub fn filter_tag(&self, vec: &Vec<PathBuf>) -> Vec<PathBuf> {
-        println!("\nSearching for: {} named {}", self.tag_type.as_str(), self.metadata.as_str());
+        //println!("\nSearching for: {} named {}", self.tag_type.as_str(), self.metadata.as_str());
         let mut filter = Vec::new();
         for song in vec {
             if self.check_tag(song.as_path()) {

@@ -55,3 +55,4 @@ Support for:
 
 - Implemented command line parser with clap;
 - Implemented grammar to validate query;
+- Implemented everything related to queries but parenthesis and regex
