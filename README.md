@@ -3,34 +3,31 @@
 Allow users to create playlists using a query like:
 
 ``` none
-Play((Artist('Joji) | Artist('Tom Misch')) & !InPlaylist('old_loved_songs'))
+Play((Artist("Joji") | Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
 ```
 
 ## Functional Requirements
 
 Support for:
 
+- Song tags:
+    - title;
+    - artist;
+    - album;
+    - albumartist;
+    - year | date;
+    - genre;
+    - disknumber.
 - Query objects:
-    - song tags:
-        - Artist;
-        - Album;
-        - Genre;
-        - AlbumArtist;
-        - Year;
-        - Any other (if not found discard song).
-    - regex in song tags:
-        - Artist;
-        - Album;
-        - Genre;
-        - AlbumArtist;
-        - Year;
-        - Any other (if not found discard song).
-    - m3u playlists;
+    - literal song tags;
+    - regex in song tags (`R_`);
+    - partial song tags (`C_`);
+    - m3u playlists.
 - Basic lang support:
     - `and` operator (`&`);
     - `or` operator (`|`);
     - `not` operator (`!`);
-    - parenthesis (`()`);
+    - parenthesis (`()`).
 
 ## Non-Functional Requirements
 

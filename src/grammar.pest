@@ -23,15 +23,20 @@ or = { "|" }
 
 regex = { "R_" }
 
-tag = { regex? ~ string ~ "(" ~ string_literal ~ ")" }
+contains = { "C_" }
+
+tag = { ( regex | contains )? ~ string ~ "(" ~ string_literal ~ ")" }
 
 playlist = { "InPlaylist(" ~ string_literal ~ ")" }
 
-string_literal = ${ ( "\"" ~ string ~ "\"" | "'" ~ string ~ "'" ) }
+quotes = _{ "\"" | "'" }
+
+string_literal = _{ ( quotes ~ string ~ quotes | quotes ~ string ~ quotes ) }
 
 string = @{ char* }
 
 char = { ASCII_ALPHANUMERIC | WHITESPACE | "_" }
 
 WHITESPACE = _{ " " | "\t" }
+
 any = _{ ANY }

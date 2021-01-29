@@ -1,10 +1,11 @@
 use std::path::PathBuf;
 use std::process::exit;
 
+use pest::iterators::Pair;
 use pest::Parser;
 
 use crate::playlist::Playlist;
-use crate::song_tag::SongTag;
+use crate::song_tag::{SearchType, SongTag};
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"] // relative to src
@@ -19,12 +20,10 @@ pub fn query_walk(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, query: &str)
     filter_query_expr(&vec, &playlist_vec, parse_result)
 }
 
-pub fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+pub fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
     println!("filter_query_expr: {}", pair.as_str());
     let mut pairs = pair.into_inner();
-    let mut final_songs = filter_token(&vec, &playlist_vec, pairs
-        .next()//get query_expr
-        .unwrap());
+    let mut final_songs = filter_token(&vec, &playlist_vec, pairs.next().unwrap());
     loop {
         let next = pairs.next();
         if next.is_none() {
@@ -38,7 +37,7 @@ pub fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair:
     }
 }
 
-fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
     println!("filter_token: {}", pair.as_str());
     let mut pairs = pair.into_inner();
     let first = pairs.next().unwrap();
@@ -57,17 +56,14 @@ fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::it
     }
 }
 
-fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
     println!("filter_token_type: {}", pair.as_str());
     match pair.as_rule() {
         Rule::simple_token => {
             filter_simple_token(vec, playlist_vec, pair.into_inner().next().unwrap())
         }
         Rule::rec_token => {
-            let first = pair.into_inner()
-                .next()// get rec_token
-                .unwrap();
-            filter_query_expr(&vec, &playlist_vec, first)
+            filter_query_expr(&vec, &playlist_vec, pair.into_inner().next().unwrap())
         }
         _ => {
             println!("Error parsing token: {} - {}", pair.to_string(), pair.as_str());
@@ -76,17 +72,15 @@ fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pes
     }
 }
 
-fn filter_simple_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+fn filter_simple_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
     println!("filter_simple_token: {}", pair.as_str());
     match pair.as_rule() {
         Rule::playlist => {
             let first = pair.into_inner()
-                .next()// get string_literal
-                .unwrap()
-                .into_inner()
                 .next()// get string
                 .unwrap()
-                .as_str().to_string();
+                .as_str()
+                .to_string();
             playlist_vec.iter()
                 .find(|&playlist| playlist.name == first)
                 .unwrap()
@@ -106,33 +100,31 @@ fn filter_simple_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: p
                     .as_str()
                     .parse()
                     .unwrap();
-                let metadata = pair.next()// get string_literal
-                    .unwrap()
-                    .into_inner()
-                    .next()// get string
+                let metadata = pair.next()// get string
                     .unwrap()
                     .as_str()
                     .parse()
                     .unwrap();
-                song_tag = SongTag {
-                    metadata,
-                    tag_type,
-                    is_regex: true,
-                };
+                song_tag = SongTag::new(metadata, tag_type, SearchType::REGEX);
+            } else if first == "C_" {
+                let tag_type = pair.next()// get string
+                    .unwrap()
+                    .as_str()
+                    .parse()
+                    .unwrap();
+                let metadata = pair.next()// get string
+                    .unwrap()
+                    .as_str()
+                    .parse()
+                    .unwrap();
+                song_tag = SongTag::new(metadata, tag_type, SearchType::CONTAINS);
             } else {
-                let metadata = pair.next()// get string_literal
-                    .unwrap()
-                    .into_inner()
-                    .next()// get string
+                let metadata = pair.next()// get string
                     .unwrap()
                     .as_str()
                     .parse()
                     .unwrap();
-                song_tag = SongTag {
-                    metadata,
-                    tag_type: first,
-                    is_regex: false,
-                };
+                song_tag = SongTag::new(metadata, first, SearchType::LITERAL);
             }
             song_tag.filter_tag(vec)
         }
