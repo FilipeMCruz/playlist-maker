@@ -4,11 +4,11 @@ extern crate pest_derive;
 use std::borrow::BorrowMut;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::exit;
-use std::io::Write;
 
-use clap::App;
+use clap::{App, Values};
 use clap::load_yaml;
 use walkdir::{DirEntry, WalkDir};
 
@@ -72,8 +72,14 @@ fn main() {
         }
     }
 
+    let playlist_vec = get_playlists(matches.values_of("playlist"));
+
+    let final_playlist = query_walk(&vec, &playlist_vec, query);
+    print(&final_playlist, output);
+}
+
+fn get_playlists(playlists_opt: Option<Values>) -> Vec<Playlist> {
     let mut playlist_vec = Vec::new();
-    let playlists_opt = matches.values_of("playlist");
     if playlists_opt.is_some() {
         let playlists = playlists_opt.unwrap();
         for playlist in playlists {
@@ -85,9 +91,7 @@ fn main() {
                 let file = File::open(path).unwrap();
                 let reader = BufReader::new(file);
                 let mut songs = Vec::new();
-                for line in reader.lines() {
-                    songs.push(PathBuf::from(line.unwrap()));
-                }
+                songs.extend(reader.lines().map(|line| PathBuf::from(line.unwrap())));
                 let playlist = Playlist {
                     name: path.file_stem().unwrap().to_str().unwrap().to_string(),
                     songs,
@@ -96,16 +100,17 @@ fn main() {
             }
         }
     }
+    playlist_vec
+}
 
-    let final_playlist = query_walk(&vec, &playlist_vec, query);
-
+fn print(vec: &Vec<PathBuf>, output: Option<&str>) {
     if output.is_none() {
-        for song in final_playlist.iter() {
+        for song in vec.iter() {
             println!("{}", song.as_path().display());
         }
     } else {
         let mut file = File::create(output.unwrap()).unwrap();
-        for song in final_playlist.iter() {
+        for song in vec.iter() {
             writeln!(&mut file, "{}", song.as_path().display()).unwrap();
         }
     }

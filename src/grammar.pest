@@ -9,9 +9,9 @@ rec_token = { start_par ~ query_expr ~ end_par } //TODO: missing this one
 
 simple_token = { playlist | tag }
 
-start_par = { "(" }
+start_par = _{ "(" }
 
-end_par = { ")" }
+end_par = _{ ")" }
 
 not = { "!" }
 

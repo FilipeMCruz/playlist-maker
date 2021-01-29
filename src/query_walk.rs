@@ -10,7 +10,7 @@ use crate::song_tag::SongTag;
 #[grammar = "grammar.pest"] // relative to src
 struct ExprParser;
 
-pub fn query_walk(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, query: &str) -> Vec<PathBuf>  {
+pub fn query_walk(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, query: &str) -> Vec<PathBuf> {
     let parse_result = ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
         println!("{}", error);
         exit(2);
@@ -64,8 +64,10 @@ fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pes
             filter_simple_token(vec, playlist_vec, pair.into_inner().next().unwrap())
         }
         Rule::rec_token => {
-            println!("rec_token: {}", pair);
-            unimplemented!("No parenthesis support for now")
+            let first = pair.into_inner()
+                .next()// get rec_token
+                .unwrap();
+            filter_query_expr(&vec, &playlist_vec, first)
         }
         _ => {
             println!("Error parsing token: {} - {}", pair.to_string(), pair.as_str());
