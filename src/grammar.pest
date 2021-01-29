@@ -3,11 +3,11 @@ query = _{ "Play(" ~ query_expr ~ ")" }
 
 query_expr = { token ~ (operator ~ token)* }
 
-rec_token = { not? ~ start_par ~ query_expr ~ end_par } //TODO: missing this one
+token = { not? ~ ( rec_token | simple_token ) }
 
-token = { rec_token | simple_token }
+rec_token = { start_par ~ query_expr ~ end_par } //TODO: missing this one
 
-simple_token = { not? ~ ( playlist | tag) }
+simple_token = { playlist | tag }
 
 start_par = { "(" }
 

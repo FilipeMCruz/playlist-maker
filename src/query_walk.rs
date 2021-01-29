@@ -1,0 +1,142 @@
+use std::path::PathBuf;
+use std::process::exit;
+
+use pest::Parser;
+
+use crate::playlist::Playlist;
+use crate::song_tag::SongTag;
+
+#[derive(Parser)]
+#[grammar = "grammar.pest"] // relative to src
+struct ExprParser;
+
+pub fn query_walk(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, query: &str) -> Vec<PathBuf>  {
+    let parse_result = ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
+        println!("{}", error);
+        exit(2);
+    }).next().unwrap();
+
+    filter_query_expr(&vec, &playlist_vec, parse_result)
+}
+
+pub fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+    println!("filter_query_expr: {}", pair.as_str());
+    let mut pairs = pair.into_inner();
+    let mut final_songs = filter_token(&vec, &playlist_vec, pairs
+        .next()//get query_expr
+        .unwrap());
+    loop {
+        let next = pairs.next();
+        if next.is_none() {
+            return final_songs;
+        }
+        if next.unwrap().as_str() == "&" {
+            final_songs = filter_token(&final_songs, &playlist_vec, pairs.next().unwrap());
+        } else {
+            final_songs.extend(filter_token(&vec, &playlist_vec, pairs.next().unwrap()));
+        }
+    }
+}
+
+fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+    println!("filter_token: {}", pair.as_str());
+    let mut pairs = pair.into_inner();
+    let first = pairs.next().unwrap();
+    if first.as_str() == "!" { // check if it's a _not_
+        let second = pairs.next().unwrap(); // rec_token or simple_token
+        let to_remove = filter_token_type(vec, playlist_vec, second);
+        let mut ret_vec = Vec::new();
+        for song in vec {
+            if !to_remove.contains(song) {
+                ret_vec.push(song.to_owned());
+            }
+        }
+        ret_vec
+    } else {
+        filter_token_type(vec, playlist_vec, first)
+    }
+}
+
+fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+    println!("filter_token_type: {}", pair.as_str());
+    match pair.as_rule() {
+        Rule::simple_token => {
+            filter_simple_token(vec, playlist_vec, pair.into_inner().next().unwrap())
+        }
+        Rule::rec_token => {
+            println!("rec_token: {}", pair);
+            unimplemented!("No parenthesis support for now")
+        }
+        _ => {
+            println!("Error parsing token: {} - {}", pair.to_string(), pair.as_str());
+            exit(2);
+        }
+    }
+}
+
+fn filter_simple_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: pest::iterators::Pair<Rule>) -> Vec<PathBuf> {
+    println!("filter_simple_token: {}", pair.as_str());
+    match pair.as_rule() {
+        Rule::playlist => {
+            let first = pair.into_inner()
+                .next()// get string_literal
+                .unwrap()
+                .into_inner()
+                .next()// get string
+                .unwrap()
+                .as_str().to_string();
+            playlist_vec.iter()
+                .find(|&playlist| playlist.name == first)
+                .unwrap()
+                .filter(vec)
+        }
+        Rule::tag => {
+            let mut pair = pair.into_inner();
+            let first = pair.next()
+                .unwrap()
+                .as_str()
+                .parse()
+                .unwrap();
+            let song_tag: SongTag;
+            if first == "R_" { // check if it's a _regex_
+                let tag_type = pair.next()// get string
+                    .unwrap()
+                    .as_str()
+                    .parse()
+                    .unwrap();
+                let metadata = pair.next()// get string_literal
+                    .unwrap()
+                    .into_inner()
+                    .next()// get string
+                    .unwrap()
+                    .as_str()
+                    .parse()
+                    .unwrap();
+                song_tag = SongTag {
+                    metadata,
+                    tag_type,
+                    is_regex: true,
+                };
+            } else {
+                let metadata = pair.next()// get string_literal
+                    .unwrap()
+                    .into_inner()
+                    .next()// get string
+                    .unwrap()
+                    .as_str()
+                    .parse()
+                    .unwrap();
+                song_tag = SongTag {
+                    metadata,
+                    tag_type: first,
+                    is_regex: false,
+                };
+            }
+            song_tag.filter_tag(vec)
+        }
+        _ => {
+            println!("Error parsing filter_simple_token: {} - {}", pair.to_string(), pair.as_str());
+            exit(2);
+        }
+    }
+}
