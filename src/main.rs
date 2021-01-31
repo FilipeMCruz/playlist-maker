@@ -113,7 +113,7 @@ fn is_song(entry: &DirEntry) -> bool {
     entry.path().is_dir() ||
         entry.file_name()
             .to_str()
-            .map(|s| s.ends_with("mp3"))
+            .map(|s| s.to_lowercase().ends_with("mp3"))
             .unwrap_or(false)
 }
 
