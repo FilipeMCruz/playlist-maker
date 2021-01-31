@@ -41,9 +41,9 @@ impl SongTag {
         if metadata_tag_result.is_ok() {
             let metadata_tag = metadata_tag_result.unwrap();
             return match self.is_regex {
+                SearchType::REGEX => self.is_regex_match(metadata_tag),
                 SearchType::LITERAL => self.is_literal_match(metadata_tag),
-                SearchType::CONTAINS => self.is_contains_match(metadata_tag),
-                SearchType::REGEX => self.is_regex_match(metadata_tag)
+                SearchType::CONTAINS => self.is_contains_match(metadata_tag)
             };
         } else {
             false

@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-
+#[derive(Clone)]
 pub struct Playlist {
     pub name: String,
     pub songs: Vec<PathBuf>
