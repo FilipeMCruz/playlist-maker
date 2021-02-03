@@ -1,46 +1,70 @@
 # Playlist Maker
 
-Allow users to create playlists using a query like:
+_Playlist Maker_ is a fast and simple console application that allows users to create playlists using a query like:
 
 ``` none
-Play((Artist("Joji") | Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
+Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
 ```
 
-## Functional Requirements
+## Query Features
 
 Query can be build using the following tokens:
-- Song tags:
-    - title;
-    - artist;
-    - album;
-    - albumartist;
-    - year | date;
-    - genre;
-    - disknumber.
+
+- Song tags (any case):
+  - title;
+  - artist;
+  - album;
+  - albumartist;
+  - year | date;
+  - genre;
+  - disknumber.
 - Query objects:
-    - literal song tags;
-    - regex in song tags (`R_`);
-    - partial song tags (`C_`);
-    - m3u playlists.
+  - literal song tags;
+  - regex in song tags (`R_`);
+  - partial song tags (`C_`);
+  - m3u playlists.
 - Basic lang support:
-    - `and` operator (`&`);
-    - `or` operator (`|`);
-    - `not` operator (`!`);
-    - parenthesis (`()`).
+  - `and` operator (`&`);
+  - `or` operator (`|`);
+  - `not` operator (`!`);
+  - parenthesis (`()`).
 
-## Non-Functional Requirements
+## Command-line options
 
-- Written in Rust so that it can be compiled to assembly and run anywhere;
-- Simple Console App;
-- Support id3 tags and mp3 files (more can eventually be added);
-- Multithreading support;
-- Support local stored songs only (more can eventually be added);
+```
+USAGE:
+    playlist-maker [OPTIONS] --input <INPUT>... --query <QUERY>
 
-## Console Args
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-- `-h` / `--help` : menu with some information;
-- `-t` / `--type` : local or spotify/soundcloud, etc (support local only for now, default to local)
-- `-o` / `--output` : file to write the playlist to (if not specified send to stdout);
-- `-q` / `--query` : query to execute;
-- `-i` / `--input` : directory with songs/playlists to query from (can be repeated if needed)
-- `-p` / `--playlist` : path to playlist to be used in the query
+OPTIONS:
+    -i, --input <INPUT>...          Directory with songs to query from (can be repeated if needed)
+    -o, --output <OUTPUT>           File to write the playlist to (if not specified send to stdout)
+    -p, --playlist <PLAYLIST>...    Path to playlist to be used in the query (can be repeated if needed)
+    -q, --query <QUERY>             Query to execute
+    -t, --type <TYPE>               Local or spotify/soundcloud, etc (support local only for now, default to local)
+```
+
+### Installation
+
+If `rust` and `cargo` are installed in the machine run:
+
+``` sh
+git pull https://github.com/FilipeMCruz/playlist-maker pl-maker
+cd pl-maker
+cargo build --release
+```
+
+The only machine where this application was tested was archlinux running 5.10.11-arch1-1 kernel and rust 1.49 version.
+
+### Future work
+
+- Test the application;
+- Simplify and optimize `playlist-maker`;
+- Use github actions to test and build the app;
+- Use github releases to publish major versions of `playlist-maker`;
+- Publish `playlist-maker` and `playlist-maker-bin` in AUR (archlinux user repositories);
+- Study how hard it is to do this for spotify or soundcloud songs/playlists;
+- Add zsh autocomplete with options.
