@@ -36,7 +36,7 @@ args:
       short: p
       long: playlist
       value_name: PLAYLIST
-      help: Path to playlist to be used in the query
+      help: Path to playlist to be used in the query (can be repeated if needed)
       required: false
       takes_value: true
       multiple: true
