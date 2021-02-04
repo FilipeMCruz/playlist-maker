@@ -23,7 +23,7 @@ mod playlist;
 mod query_walk;
 
 fn main() {
-    let yaml = load_yaml!("../cli.yml");
+    let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
 
     //Nothing to do for now, all playlist must be local
