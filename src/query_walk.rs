@@ -20,7 +20,7 @@ pub fn query_walk(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, query: &str)
     filter_query_expr(&vec, &playlist_vec, parse_result)
 }
 
-pub fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
+fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
     //println!("filter_query_expr: {}", pair.as_str());
     let mut pairs = pair.into_inner();
     let mut final_songs = filter_token(&vec, &playlist_vec, pairs.next().unwrap());
@@ -79,7 +79,6 @@ fn filter_simple_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: P
             let first = pair.into_inner()
                 .next()// get string
                 .unwrap()
-                .as_str()
                 .to_string();
             playlist_vec.iter()
                 .find(|&playlist| playlist.name == first)

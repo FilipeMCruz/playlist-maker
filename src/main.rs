@@ -33,11 +33,17 @@ fn main() {
 
     let query = matches.value_of("query").unwrap();
 
-    let input = matches.values_of("input").unwrap();
-    let songs = get_songs(input);
+    let songs = get_songs(matches.values_of("input").unwrap());
 
     let playlist_vec = get_playlists(matches.values_of("playlist"));
 
+    let chunks_songs = divide_songs_by_threads(songs);
+
+    let final_play = query_songs(&query, playlist_vec, chunks_songs);
+    print(&final_play, output);
+}
+
+fn divide_songs_by_threads(songs: Vec<PathBuf>) -> Vec<Vec<PathBuf>> {
     let threads = num_cpus::get();
 
     let chunk_size = songs.len() / threads;
@@ -52,7 +58,10 @@ fn main() {
         }
         chunks_songs.push(vec);
     }
+    chunks_songs
+}
 
+fn query_songs(query: &str, playlist_vec: Vec<Playlist>, chunks_songs: Vec<Vec<PathBuf>>) -> Vec<PathBuf> {
     let mut handles = Vec::new();
     let final_play = Arc::new(Mutex::new(Vec::new()));
     for chunk in chunks_songs {
@@ -71,7 +80,8 @@ fn main() {
     for handle in handles {
         handle.join().unwrap();
     }
-    print(&final_play.lock().unwrap(), output);
+    let final_playlist = final_play.lock().unwrap().to_vec();
+    final_playlist
 }
 
 pub fn get_type(playlist_type: &str) -> &str {
@@ -127,13 +137,10 @@ fn get_playlists(playlists_opt: Option<Values>) -> Vec<Playlist> {
                 println!("playlist {} does not exist or is invalid (not m3u)!", playlist);
                 exit(2);
             } else {
-                let file = File::open(path).unwrap();
-                let reader = BufReader::new(file);
-                let mut songs = Vec::new();
-                songs.extend(reader.lines().map(|line| PathBuf::from(line.unwrap())));
                 let playlist = Playlist {
                     name: path.file_stem().unwrap().to_str().unwrap().to_string(),
-                    songs,
+                    songs: BufReader::new(File::open(path).unwrap()).lines()
+                        .map(|line| PathBuf::from(line.unwrap())).collect(),
                 };
                 playlist_vec.push(playlist);
             }
