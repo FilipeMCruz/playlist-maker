@@ -49,6 +49,10 @@ OPTIONS:
 
 ### Installation
 
+The only machine where this application was properly tested was archlinux running 5.10.13-arch1-1 kernel and rust 1.49 version.
+
+#### Direct via Cargo
+
 If `rust` and `cargo` are installed in the machine run:
 
 ``` sh
@@ -57,12 +61,18 @@ cd pl-maker
 cargo build --release
 ```
 
-The only machine where this application was properly tested was archlinux running 5.10.13-arch1-1 kernel and rust 1.49 version.
+#### Arch Linux via AUR
+
+Install [Package](https://aur.archlinux.org/packages/playlist-maker-rs) by running:
+
+``` sh
+paru -S playlist-maker-rs
+```
 
 ### Future work
 
 - Test the application;
 - Simplify and optimize `playlist-maker`;
-- Publish `playlist-maker` and `playlist-maker-bin` in AUR (archlinux user repositories);
+- Publish `playlist-maker-bin` in AUR (archlinux user repositories);
 - Study how hard it is to do this for spotify or soundcloud songs/playlists;
 - Add zsh autocomplete with options.
