@@ -57,14 +57,12 @@ cd pl-maker
 cargo build --release
 ```
 
-The only machine where this application was tested was archlinux running 5.10.11-arch1-1 kernel and rust 1.49 version.
+The only machine where this application was properly tested was archlinux running 5.10.13-arch1-1 kernel and rust 1.49 version.
 
 ### Future work
 
 - Test the application;
 - Simplify and optimize `playlist-maker`;
-- Use github actions to test and build the app;
-- Use github releases to publish major versions of `playlist-maker`;
 - Publish `playlist-maker` and `playlist-maker-bin` in AUR (archlinux user repositories);
 - Study how hard it is to do this for spotify or soundcloud songs/playlists;
 - Add zsh autocomplete with options.
