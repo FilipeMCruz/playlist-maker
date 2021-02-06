@@ -5,7 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-    tags: [ v.*.*.* ]
+    tags: [ v*.*.* ]
 
 env:
   CARGO_TERM_COLOR: always
