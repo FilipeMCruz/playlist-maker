@@ -76,10 +76,12 @@ fn filter_simple_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: P
     //println!("filter_simple_token: {}", pair.as_str());
     match pair.as_rule() {
         Rule::playlist => {
-            let first = pair.into_inner()
+            let first : String = pair.into_inner()
                 .next()// get string
                 .unwrap()
-                .to_string();
+                .as_str()
+                .parse()
+                .unwrap();
             playlist_vec.iter()
                 .find(|&playlist| playlist.name == first)
                 .unwrap()
