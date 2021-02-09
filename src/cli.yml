@@ -1,5 +1,5 @@
 name: playlist-maker
-version: "1.0"
+version: "0.1.1"
 author: FilipeMCruz <filipeCruz@tuta.io>
 about: Create playlists using a query language
 args:
