@@ -1,0 +1,43 @@
+
+using namespace System.Management.Automation
+using namespace System.Management.Automation.Language
+
+Register-ArgumentCompleter -Native -CommandName 'pl-mker' -ScriptBlock {
+    param($wordToComplete, $commandAst, $cursorPosition)
+
+    $commandElements = $commandAst.CommandElements
+    $command = @(
+        'pl-mker'
+        for ($i = 1; $i -lt $commandElements.Count; $i++) {
+            $element = $commandElements[$i]
+            if ($element -isnot [StringConstantExpressionAst] -or
+                $element.StringConstantType -ne [StringConstantType]::BareWord -or
+                $element.Value.StartsWith('-')) {
+                break
+        }
+        $element.Value
+    }) -join ';'
+
+    $completions = @(switch ($command) {
+        'pl-mker' {
+            [CompletionResult]::new('-t', 't', [CompletionResultType]::ParameterName, 'Local or spotify/soundcloud, etc (support local only for now, default to local)')
+            [CompletionResult]::new('--type', 'type', [CompletionResultType]::ParameterName, 'Local or spotify/soundcloud, etc (support local only for now, default to local)')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'File to write the playlist to (if not specified send to stdout)')
+            [CompletionResult]::new('--output', 'output', [CompletionResultType]::ParameterName, 'File to write the playlist to (if not specified send to stdout)')
+            [CompletionResult]::new('-q', 'q', [CompletionResultType]::ParameterName, 'Query to execute')
+            [CompletionResult]::new('--query', 'query', [CompletionResultType]::ParameterName, 'Query to execute')
+            [CompletionResult]::new('-i', 'i', [CompletionResultType]::ParameterName, 'Directory with songs to query from (can be repeated if needed)')
+            [CompletionResult]::new('--input', 'input', [CompletionResultType]::ParameterName, 'Directory with songs to query from (can be repeated if needed)')
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Path to playlist to be used in the query (can be repeated if needed)')
+            [CompletionResult]::new('--playlist', 'playlist', [CompletionResultType]::ParameterName, 'Path to playlist to be used in the query (can be repeated if needed)')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+    })
+
+    $completions.Where{ $_.CompletionText -like "$wordToComplete*" } |
+        Sort-Object -Property ListItemText
+}

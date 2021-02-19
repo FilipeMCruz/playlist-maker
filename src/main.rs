@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate pest_derive;
 
+use std::{thread};
 use std::borrow::BorrowMut;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -8,7 +9,6 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::sync::{Arc, Mutex};
-use std::thread;
 
 use clap::{App, Values};
 use clap::load_yaml;
@@ -24,7 +24,7 @@ mod query_walk;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(yaml).get_matches();
+    let matches = App::from(yaml).get_matches();
 
     //Nothing to do for now, all playlist must be local
     let _playlist_type = get_type(matches.value_of("type").unwrap_or("local"));
