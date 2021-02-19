@@ -1,0 +1,44 @@
+#compdef pl-mker
+
+autoload -U is-at-least
+
+_pl-mker() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" \
+'-t+[Local or spotify/soundcloud, etc (support local only for now, default to local)]' \
+'--type=[Local or spotify/soundcloud, etc (support local only for now, default to local)]' \
+'-o+[File to write the playlist to (if not specified send to stdout)]' \
+'--output=[File to write the playlist to (if not specified send to stdout)]' \
+'-q+[Query to execute]' \
+'--query=[Query to execute]' \
+'*-i+[Directory with songs to query from (can be repeated if needed)]' \
+'*--input=[Directory with songs to query from (can be repeated if needed)]' \
+'*-p+[Path to playlist to be used in the query (can be repeated if needed)]' \
+'*--playlist=[Path to playlist to be used in the query (can be repeated if needed)]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+    
+}
+
+(( $+functions[_pl-mker_commands] )) ||
+_pl-mker_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'pl-mker commands' commands "$@"
+}
+
+_pl-mker "$@"

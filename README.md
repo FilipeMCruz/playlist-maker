@@ -16,6 +16,8 @@ Query can be build using the following tokens:
   - album;
   - albumartist;
   - year | date;
+  - beforeyear (only for literal tags);
+  - afteryear (only for literal tags);
   - genre;
   - disknumber.
 - Query objects:
@@ -63,16 +65,26 @@ cargo build --release
 
 #### Arch Linux via AUR
 
-Install [Package](https://aur.archlinux.org/packages/playlist-maker-rs) by running:
+Install [package](https://aur.archlinux.org/packages/playlist-maker-rs) by running:
 
 ``` sh
 paru -S playlist-maker-rs
+```
+
+OR (for the binary version)
+
+``` sh
+paru -S playlist-maker-rs-bin
+```
+
+OR (for the latest commit version)
+
+``` sh
+paru -S playlist-maker-rs-git
 ```
 
 ### Future work
 
 - Test the application;
 - Simplify and optimize `playlist-maker`;
-- Publish `playlist-maker-bin` in AUR (archlinux user repositories);
 - Study how hard it is to do this for spotify or soundcloud songs/playlists;
-- Add zsh autocomplete with options.

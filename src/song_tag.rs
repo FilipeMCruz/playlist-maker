@@ -84,6 +84,8 @@ impl SongTag {
             "artist" => metadata_tag.artist().unwrap_or("") == metadata,
             "album" => metadata_tag.album().unwrap_or("") == metadata,
             "albumartist" => metadata_tag.album_artist().unwrap_or("") == metadata,
+            "beforeyear" | "beforedate" => metadata_tag.year().unwrap_or(0).gt(&metadata.parse::<i32>().unwrap()),
+            "afteryear" | "afterdate" => metadata_tag.year().unwrap_or(0).le(&metadata.parse::<i32>().unwrap()),
             "year" | "date" => metadata_tag.year().unwrap_or(0).to_string() == metadata,
             "genre" => metadata_tag.genre().unwrap_or("") == metadata,
             "disknumber" => metadata_tag.disc().unwrap_or(0).to_string() == metadata,
