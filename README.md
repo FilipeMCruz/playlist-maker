@@ -46,12 +46,11 @@ OPTIONS:
     -o, --output <OUTPUT>           File to write the playlist to (if not specified send to stdout)
     -p, --playlist <PLAYLIST>...    Path to playlist to be used in the query (can be repeated if needed)
     -q, --query <QUERY>             Query to execute
-    -t, --type <TYPE>               Local or spotify/soundcloud, etc (support local only for now, default to local)
 ```
 
 ### Installation
 
-The only machine where this application was properly tested was archlinux running 5.10.13-arch1-1 kernel and rust 1.49 version.
+The only machine where this application was properly tested was archlinux running 6.0.7-arch1-1 kernel and rust 1.65 version.
 
 #### Direct via Cargo
 
