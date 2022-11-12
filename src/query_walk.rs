@@ -21,7 +21,6 @@ pub fn query_walk(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, query: &str)
 }
 
 fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
-    //println!("filter_query_expr: {}", pair.as_str());
     let mut pairs = pair.into_inner();
     let mut final_songs = filter_token(&vec, &playlist_vec, pairs.next().unwrap());
     loop {
@@ -57,7 +56,6 @@ fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rul
 }
 
 fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
-    //println!("filter_token_type: {}", pair.as_str());
     match pair.as_rule() {
         Rule::simple_token => {
             filter_simple_token(vec, playlist_vec, pair.into_inner().next().unwrap())
@@ -73,7 +71,6 @@ fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pai
 }
 
 fn filter_simple_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
-    //println!("filter_simple_token: {}", pair.as_str());
     match pair.as_rule() {
         Rule::playlist => {
             let first: String = pair.into_inner()

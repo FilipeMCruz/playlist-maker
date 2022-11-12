@@ -3,9 +3,9 @@ query = _{ "Play(" ~ query_expr ~ ")" }
 
 query_expr = { token ~ (operator ~ token)* }
 
-token = { not? ~ ( rec_token | simple_token ) }
+token = { not? ~ ( simple_token | rec_token ) }
 
-rec_token = { start_par ~ query_expr ~ end_par } //TODO: missing this one
+rec_token = { start_par ~ query_expr ~ end_par }
 
 simple_token = { playlist | tag }
 
@@ -35,7 +35,7 @@ string_literal = _{ ( quotes ~ string ~ quotes | quotes ~ string ~ quotes ) }
 
 string = @{ char* }
 
-char = { ASCII_ALPHANUMERIC | WHITESPACE | "_" }
+char = { ASCII_ALPHANUMERIC | WHITESPACE | "_" | "|" | "[" | "]" | "^" | "?" | "-" | "?" | "*" | "+" | "?" | "{" | "}" }
 
 WHITESPACE = _{ " " | "\t" }
 
