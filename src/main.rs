@@ -10,8 +10,7 @@ use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::sync::{Arc, Mutex};
 
-use clap::{App, Values};
-use clap::load_yaml;
+use clap::Parser;
 use walkdir::{DirEntry, WalkDir};
 
 use playlist::Playlist;
@@ -22,25 +21,40 @@ mod song_tag;
 mod playlist;
 mod query_walk;
 
+#[derive(Parser)]
+#[command(name = "playlist-maker")]
+#[command(author = "FilipeMCruz <filipeCruz@tuta.io>")]
+#[command(version = "0.2.1")]
+#[command(about = "Create playlists using a query language", long_about = None)]
+struct Cli {
+    ///Directory with songs to query from (can be repeated if needed)
+    #[arg(short, long)]
+    input: Vec<PathBuf>,
+    ///File to write the playlist to (if not specified send to stdout)
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+    ///Path to playlist to be used in the query (can be repeated if needed)
+    #[arg(short, long)]
+    playlist: Vec<PathBuf>,
+    ///Query to execute
+    #[arg(short, long)]
+    query: String,
+}
+
 fn main() {
-    let yaml = load_yaml!("cli.yml");
-    let matches = App::from(yaml).get_matches();
+    let cli = Cli::parse();
 
-    //Nothing to do for now, all playlist must be local
-    let _playlist_type = get_type(matches.value_of("type").unwrap_or("local"));
+    let playlist_vec = get_playlists(cli.playlist);
 
-    let output = matches.value_of("output");
+    let chunks_songs = divide_songs_by_threads(get_songs(cli.input));
 
-    let query = matches.value_of("query").unwrap();
+    let final_play = query_songs(&cli.query, playlist_vec, chunks_songs);
 
-    let songs = get_songs(matches.values_of("input").unwrap());
+    if let Some(output) = cli.output.as_deref() {
+        println!("Value for output: {}", output.display());
+    }
 
-    let playlist_vec = get_playlists(matches.values_of("playlist"));
-
-    let chunks_songs = divide_songs_by_threads(songs);
-
-    let final_play = query_songs(&query, playlist_vec, chunks_songs);
-    print(&final_play, output);
+    print(&final_play, cli.output.as_deref());
 }
 
 fn divide_songs_by_threads(songs: Vec<PathBuf>) -> Vec<Vec<PathBuf>> {
@@ -96,11 +110,11 @@ pub fn get_type(playlist_type: &str) -> &str {
     });
 }
 
-fn get_songs(input: Values) -> Vec<PathBuf> {
+fn get_songs(input: Vec<PathBuf>) -> Vec<PathBuf> {
     let mut vec = Vec::new();
     for dir in input {
-        if !Path::new(dir).exists() {
-            println!("Folder {} does not exist!", dir);
+        if !dir.exists() {
+            println!("Folder {} does not exist!", dir.display());
             exit(2);
         } else {
             walk(dir, vec.borrow_mut());
@@ -109,7 +123,7 @@ fn get_songs(input: Values) -> Vec<PathBuf> {
     vec
 }
 
-fn walk(dir: &str, ret: &mut Vec<PathBuf>) {
+fn walk(dir: PathBuf, ret: &mut Vec<PathBuf>) {
     let walker = WalkDir::new(dir).into_iter();
     for entry in walker.filter_entry(|e| is_song(e)) {
         let entry = entry.unwrap();
@@ -127,29 +141,26 @@ fn is_song(entry: &DirEntry) -> bool {
             .unwrap_or(false)
 }
 
-fn get_playlists(playlists_opt: Option<Values>) -> Vec<Playlist> {
+fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
     let mut playlist_vec = Vec::new();
-    if playlists_opt.is_some() {
-        let playlists = playlists_opt.unwrap();
-        for playlist in playlists {
-            let path = Path::new(playlist);
-            if !path.exists() || !path.extension().unwrap().eq("m3u") {
-                println!("playlist {} does not exist or is invalid (not m3u)!", playlist);
-                exit(2);
-            } else {
-                let playlist = Playlist {
-                    name: path.file_stem().unwrap().to_str().unwrap().to_string(),
-                    songs: BufReader::new(File::open(path).unwrap()).lines()
-                        .map(|line| PathBuf::from(line.unwrap())).collect(),
-                };
-                playlist_vec.push(playlist);
-            }
+    for playlist in playlists {
+        let path = Path::new(&playlist);
+        if !path.exists() || !path.extension().unwrap().eq("m3u") {
+            println!("playlist `{}` does not exist or is invalid (not m3u)!", playlist.display());
+            exit(2);
+        } else {
+            let playlist = Playlist {
+                name: path.file_stem().unwrap().to_str().unwrap().to_string(),
+                songs: BufReader::new(File::open(path).unwrap()).lines()
+                    .map(|line| PathBuf::from(line.unwrap())).collect(),
+            };
+            playlist_vec.push(playlist);
         }
     }
     playlist_vec
 }
 
-fn print(vec: &Vec<PathBuf>, output: Option<&str>) {
+fn print(vec: &Vec<PathBuf>, output: Option<&Path>) {
     if output.is_none() {
         for song in vec.iter() {
             println!("{}", song.as_path().display());

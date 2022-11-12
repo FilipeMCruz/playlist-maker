@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use id3::Tag;
+use id3::{Tag, TagLike};
 use regex::Regex;
 
 struct MetadataType {
