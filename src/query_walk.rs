@@ -37,19 +37,15 @@ fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pai
 }
 
 fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
-    //println!("filter_token: {}", pair.as_str());
     let mut pairs = pair.into_inner();
     let first = pairs.next().unwrap();
     if first.as_str() == "!" { // check if it's a _not_
-        let second = pairs.next().unwrap(); // rec_token or simple_token
-        let to_remove = filter_token_type(vec, playlist_vec, second);
-        let mut ret_vec = Vec::new();
-        for song in vec {
-            if !to_remove.contains(song) {
-                ret_vec.push(song.to_owned());
-            }
-        }
-        ret_vec
+        let to_remove = filter_token_type(vec, playlist_vec, pairs.next().unwrap());
+
+        return vec.into_iter()
+            .filter(|song| !to_remove.contains(song))
+            .map(|song| song.to_owned())
+            .collect();
     } else {
         filter_token_type(vec, playlist_vec, first)
     }
