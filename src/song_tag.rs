@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
 use id3::{Tag, TagLike};
 use regex::Regex;
@@ -36,18 +36,13 @@ impl SongTag {
             is_regex,
         }
     }
-    fn check_tag(&self, path: &Path) -> bool {
-        let metadata_tag_result = Tag::read_from_path(path);
-        if metadata_tag_result.is_ok() {
-            let metadata_tag = metadata_tag_result.unwrap();
-            return match self.is_regex {
-                SearchType::REGEX => self.is_regex_match(metadata_tag),
-                SearchType::LITERAL => self.is_literal_match(metadata_tag),
-                SearchType::CONTAINS => self.is_contains_match(metadata_tag)
-            };
-        } else {
-            false
-        }
+
+    fn check_tag(&self, metadata_tag: Tag) -> bool {
+        return match self.is_regex {
+            SearchType::REGEX => self.is_regex_match(metadata_tag),
+            SearchType::LITERAL => self.is_literal_match(metadata_tag),
+            SearchType::CONTAINS => self.is_contains_match(metadata_tag)
+        };
     }
 
     fn is_regex_match(&self, metadata_tag: Tag) -> bool {
@@ -94,12 +89,10 @@ impl SongTag {
     }
 
     pub fn filter_tag(&self, vec: &Vec<PathBuf>) -> Vec<PathBuf> {
-        let mut filter = Vec::new();
-        for song in vec {
-            if self.check_tag(song.as_path()) {
-                filter.push(song.to_owned());
-            }
-        }
-        filter
+        return vec.into_iter()
+            .map(|song| (song, Tag::read_from_path(song.to_owned())))
+            .filter(|(_, tag)| tag.is_ok() && self.check_tag(tag.as_ref().unwrap().to_owned()))
+            .map(|(song, _)| song.to_owned())
+            .collect::<Vec<PathBuf>>();
     }
 }

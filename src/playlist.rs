@@ -8,12 +8,9 @@ pub struct Playlist {
 
 impl Playlist {
     pub fn filter(&self, vec: &Vec<PathBuf>) -> Vec<PathBuf> {
-        let mut filter = Vec::new();
-        for song in vec {
-            if self.songs.contains(song) {
-                filter.push(song.to_owned());
-            }
-        }
-        filter
+        return vec.iter()
+            .filter(|song| self.songs.contains(song))
+            .map(|song| song.to_owned())
+            .collect::<Vec<PathBuf>>();
     }
 }
