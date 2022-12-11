@@ -53,12 +53,8 @@ fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rul
 
 fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Vec<PathBuf> {
     match pair.as_rule() {
-        Rule::simple_token => {
-            filter_simple_token(vec, playlist_vec, pair.into_inner().next().unwrap())
-        }
-        Rule::rec_token => {
-            filter_query_expr(&vec, &playlist_vec, pair.into_inner().next().unwrap())
-        }
+        Rule::simple_token => filter_simple_token(vec, playlist_vec, pair.into_inner().next().unwrap()),
+        Rule::rec_token => filter_query_expr(&vec, &playlist_vec, pair.into_inner().next().unwrap()),
         _ => {
             println!("Error parsing token: {} - {}", pair.to_string(), pair.as_str());
             exit(2);

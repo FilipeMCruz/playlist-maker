@@ -1,6 +1,11 @@
 #[macro_use]
 extern crate pest_derive;
 
+mod song_tag;
+mod playlist;
+mod query_walk;
+mod path_extended;
+
 use std::{thread};
 use std::borrow::BorrowMut;
 use std::fs::File;
@@ -11,15 +16,12 @@ use std::process::exit;
 use std::sync::{Arc, Mutex};
 
 use clap::Parser;
-use walkdir::{DirEntry, WalkDir};
+use walkdir::{WalkDir};
 
 use playlist::Playlist;
+use path_extended::ExtendedPath;
 
 use crate::query_walk::query_walk;
-
-mod song_tag;
-mod playlist;
-mod query_walk;
 
 #[derive(Parser)]
 #[command(name = "playlist-maker")]
@@ -89,11 +91,11 @@ fn query_songs(query: &str, playlist_vec: Vec<Playlist>, chunks_songs: Vec<Vec<P
 fn get_songs(input: Vec<PathBuf>) -> Vec<PathBuf> {
     let mut vec = Vec::new();
     for dir in input {
-        if !dir.exists() {
+        if dir.exists() {
+            walk(dir, vec.borrow_mut());
+        } else {
             println!("Folder {} does not exist!", dir.display());
             exit(2);
-        } else {
-            walk(dir, vec.borrow_mut());
         }
     }
     vec
@@ -101,33 +103,25 @@ fn get_songs(input: Vec<PathBuf>) -> Vec<PathBuf> {
 
 fn walk(dir: PathBuf, ret: &mut Vec<PathBuf>) {
     WalkDir::new(dir).into_iter()
-        .filter_entry(|entry| is_song(entry))
-        .map(|entry| entry.unwrap())
-        .filter(|entry| entry.path().is_file())
-        .for_each(|entry| ret.push(entry.path().to_owned()));
-}
-
-fn is_song(entry: &DirEntry) -> bool {
-    entry.path().is_dir() ||
-        entry.file_name()
-            .to_str()
-            .map(|s| s.to_lowercase().ends_with("mp3"))
-            .unwrap_or(false)
+        .filter_entry(|entry| entry.path().match_extension_or_dir("mp3"))
+        .map(|entry| entry.unwrap().into_path())
+        .filter(|entry| entry.is_file())
+        .for_each(|entry| ret.push(entry));
 }
 
 fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
     let mut playlist_vec = Vec::new();
     for playlist in playlists {
         let path = Path::new(&playlist);
-        if !path.exists() || !path.extension().unwrap().eq("m3u") {
-            println!("playlist `{}` does not exist or is invalid (not m3u)!", playlist.display());
-            exit(2);
-        } else {
+        if path.match_extension("m3u") {
             playlist_vec.push(Playlist {
                 name: path.file_stem().unwrap().to_str().unwrap().to_string(),
                 songs: BufReader::new(File::open(path).unwrap()).lines()
                     .map(|line| PathBuf::from(line.unwrap())).collect(),
             });
+        } else {
+            println!("playlist `{}` does not exist or is invalid (not m3u)!", playlist.display());
+            exit(2);
         }
     }
     playlist_vec
@@ -136,10 +130,12 @@ fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
 fn print(vec: &Vec<PathBuf>, output: Option<&Path>) {
     let map = vec.iter()
         .map(|song| song.as_path().display());
-    if output.is_none() {
-        map.for_each(|song| println!("{}", song));
-    } else {
-        let mut file = File::create(output.unwrap()).unwrap();
-        map.for_each(|song| writeln!(&mut file, "{}", song).unwrap());
+
+    match output {
+        None => { map.for_each(|song| println!("{}", song)); }
+        Some(out) => {
+            let mut file = File::create(out).unwrap();
+            map.for_each(|song| writeln!(&mut file, "{}", song).unwrap());
+        }
     }
 }
