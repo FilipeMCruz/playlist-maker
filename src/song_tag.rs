@@ -18,74 +18,89 @@ pub enum SearchType {
 pub struct SongTag {
     metadata: MetadataType,
     tag_type: String,
-    is_regex: SearchType,
+    search_type: SearchType,
 }
 
 impl SongTag {
     pub fn new(metadata_string: String, tag_type: String, is_regex: SearchType) -> Self {
-        let metadata: MetadataType;
-        if is_regex == SearchType::REGEX {
-            metadata = MetadataType { regex: Regex::new(metadata_string.as_str()).unwrap(), exact: "".to_string() };
-        } else {
-            metadata = MetadataType { regex: Regex::new("").unwrap(), exact: metadata_string };
-        }
-
         Self {
-            metadata,
+            metadata: match is_regex {
+                SearchType::REGEX => MetadataType { regex: Regex::new(metadata_string.as_str()).unwrap(), exact: "".to_string() },
+                SearchType::CONTAINS | SearchType::LITERAL => MetadataType { regex: Regex::new("").unwrap(), exact: metadata_string }
+            },
             tag_type,
-            is_regex,
+            search_type: is_regex,
         }
     }
 
     fn check_tag(&self, metadata_tag: Tag) -> bool {
-        return match self.is_regex {
+        match self.search_type {
             SearchType::REGEX => self.is_regex_match(metadata_tag),
             SearchType::LITERAL => self.is_literal_match(metadata_tag),
             SearchType::CONTAINS => self.is_contains_match(metadata_tag)
-        };
+        }
+    }
+
+    fn has_info(&self, metadata_tag: Tag) -> Option<String> {
+        match self.tag_type.to_lowercase().as_ref() {
+            "title" => metadata_tag.title().map(|e| e.to_string()),
+            "artist" => metadata_tag.artist().map(|e| e.to_string()),
+            "album" => metadata_tag.album().map(|e| e.to_string()),
+            "albumartist" => metadata_tag.album_artist().map(|e| e.to_string()),
+            "year" | "date" | "beforeyear" | "beforedate" | "afteryear" | "afterdate" => Some(metadata_tag.year()?.to_string()),
+            "genre" => metadata_tag.genre().map(|e| e.to_string()),
+            "disknumber" => Some(metadata_tag.disc()?.to_string()),
+            _ => None
+        }
     }
 
     fn is_regex_match(&self, metadata_tag: Tag) -> bool {
-        match self.tag_type.to_lowercase().as_ref() {
-            "title" => self.metadata.regex.is_match(metadata_tag.title().unwrap_or("")),
-            "artist" => self.metadata.regex.is_match(metadata_tag.artist().unwrap_or("")),
-            "album" => self.metadata.regex.is_match(metadata_tag.album().unwrap_or("")),
-            "albumartist" => self.metadata.regex.is_match(metadata_tag.album_artist().unwrap_or("")),
-            "year" | "date" => self.metadata.regex.is_match(metadata_tag.year().unwrap_or(0).to_string().as_str()),
-            "genre" => self.metadata.regex.is_match(metadata_tag.genre().unwrap_or("")),
-            "disknumber" => self.metadata.regex.is_match(metadata_tag.disc().unwrap_or(0).to_string().as_str()),
-            _ => false
-        }
+        self.has_info(metadata_tag).map_or(false, |info| {
+            match self.tag_type.to_lowercase().as_ref() {
+                "title" => self.metadata.regex.is_match(info.as_str()),
+                "artist" => self.metadata.regex.is_match(info.as_str()),
+                "album" => self.metadata.regex.is_match(info.as_str()),
+                "albumartist" => self.metadata.regex.is_match(info.as_str()),
+                "year" | "date" => self.metadata.regex.is_match(info.as_str()),
+                "genre" => self.metadata.regex.is_match(info.as_str()),
+                "disknumber" => self.metadata.regex.is_match(info.as_str()),
+                _ => false
+            }
+        })
     }
 
     fn is_contains_match(&self, metadata_tag: Tag) -> bool {
-        let metadata = self.metadata.exact.as_str();
-        match self.tag_type.to_lowercase().as_ref() {
-            "title" => metadata_tag.title().unwrap_or("").contains(metadata),
-            "artist" => metadata_tag.artist().unwrap_or("").contains(metadata),
-            "album" => metadata_tag.album().unwrap_or("").contains(metadata),
-            "albumartist" => metadata_tag.album_artist().unwrap_or("").contains(metadata),
-            "year" | "date" => metadata_tag.year().unwrap_or(0).to_string().contains(metadata),
-            "genre" => metadata_tag.genre().unwrap_or("").contains(metadata),
-            "disknumber" => metadata_tag.disc().unwrap_or(0).to_string().contains(metadata),
-            _ => false
-        }
+        self.has_info(metadata_tag).map_or(false, |info| {
+            let metadata = self.metadata.exact.as_str();
+            match self.tag_type.to_lowercase().as_ref() {
+                "title" => info.contains(metadata),
+                "artist" => info.contains(metadata),
+                "album" => info.contains(metadata),
+                "albumartist" => info.contains(metadata),
+                "year" | "date" => info.contains(metadata),
+                "genre" => info.contains(metadata),
+                "disknumber" => info.contains(metadata),
+                _ => false
+            }
+        })
     }
 
     fn is_literal_match(&self, metadata_tag: Tag) -> bool {
-        let metadata = self.metadata.exact.as_str();
-        match self.tag_type.to_lowercase().as_ref() {
-            "title" => metadata_tag.title().unwrap_or("") == metadata,
-            "artist" => metadata_tag.artist().unwrap_or("") == metadata,
-            "album" => metadata_tag.album().unwrap_or("") == metadata,
-            "albumartist" => metadata_tag.album_artist().unwrap_or("") == metadata,
-            "beforeyear" | "beforedate" => metadata_tag.year().unwrap_or(0).gt(&metadata.parse::<i32>().unwrap()),
-            "afteryear" | "afterdate" => metadata_tag.year().unwrap_or(0).le(&metadata.parse::<i32>().unwrap()),
-            "year" | "date" => metadata_tag.year().unwrap_or(0).to_string() == metadata,
-            "genre" => metadata_tag.genre().unwrap_or("") == metadata,
-            "disknumber" => metadata_tag.disc().unwrap_or(0).to_string() == metadata,
-            _ => false
-        }
+        self.has_info(metadata_tag).map_or(false, |info| {
+            let metadata = self.metadata.exact.as_str();
+            match self.tag_type.to_lowercase().as_ref() {
+                "title" => info == metadata,
+                "artist" => info == metadata,
+                "album" => info == metadata,
+                "albumartist" => info == metadata,
+                "beforeyear" | "beforedate" => info.parse::<i32>().unwrap().gt(&metadata.parse::<i32>().unwrap()),
+                "afteryear" | "afterdate" => info.parse::<i32>().unwrap().le(&metadata.parse::<i32>().unwrap()),
+                "year" | "date" => info == metadata,
+                "genre" => info == metadata,
+                "disknumber" => info == metadata,
+                _ => false
+            }
+        })
     }
 
     pub fn filter_tag(&self, vec: &Vec<PathBuf>) -> Vec<PathBuf> {
