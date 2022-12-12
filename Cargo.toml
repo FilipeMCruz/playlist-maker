@@ -5,14 +5,14 @@ authors = ["FilipeMCruz <filipeCruz@tuta.io>"]
 edition = "2021"
 
 [dependencies]
-pest = "2.4.1"
-pest_derive = "2.4.1"
+pest = "2.5.1"
+pest_derive = "2.5.1"
 walkdir = "2.3.2"
-id3 = "1.2.0"
+id3 = "1.5.1"
 regex = "1.7.0"
 num_cpus = "1.14.0"
 
 [dependencies.clap]
-version = "4.0.23"
+version = "4.0.29"
 default-features = false
 features = ["derive", "std", "suggestions", "color"]

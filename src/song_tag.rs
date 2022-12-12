@@ -103,11 +103,11 @@ impl SongTag {
         })
     }
 
-    pub fn filter_tag(&self, vec: &Vec<PathBuf>) -> Vec<PathBuf> {
-        return vec.into_iter()
+    pub fn filter_tag(&self, vec: &Vec<PathBuf>) -> Option<Vec<PathBuf>> {
+        Some(vec.into_iter()
             .map(|song| (song, Tag::read_from_path(song.to_owned())))
             .filter(|(_, tag)| tag.is_ok() && self.check_tag(tag.as_ref().unwrap().to_owned()))
             .map(|(song, _)| song.to_owned())
-            .collect::<Vec<PathBuf>>();
+            .collect::<Vec<PathBuf>>())
     }
 }

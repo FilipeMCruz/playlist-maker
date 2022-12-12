@@ -5,6 +5,7 @@ mod song_tag;
 mod playlist;
 mod query_walk;
 mod path_extended;
+mod pair_extended;
 
 use std::{thread};
 use std::borrow::BorrowMut;
@@ -77,8 +78,11 @@ fn query_songs(query: &str, playlist_vec: Vec<Playlist>, chunks_songs: Vec<Vec<P
 
         let cloned_v = final_play.clone();
         let handle = thread::spawn(move || {
-            let final_playlist = query_walk(&chunk, &playlist_songs, &query_copy);
-            cloned_v.lock().unwrap().extend(final_playlist);
+            query_walk(&chunk, &playlist_songs, &query_copy)
+                .map(|arr| cloned_v.lock().unwrap().extend(arr));
+            // if final_playlist.is_some() {
+            //     cloned_v.lock().unwrap().extend(final_playlist);
+            // }
         });
         handles.push(handle);
     }
