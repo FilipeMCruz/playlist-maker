@@ -61,9 +61,7 @@ fn divide_songs_by_threads(songs: Vec<PathBuf>) -> Vec<Vec<PathBuf>> {
 
     songs.chunks(songs.len() / num_cpus::get()).collect::<Vec<&[PathBuf]>>()
         .iter()
-        .for_each(|chunk_copy| chunks_songs.push(chunk_copy.iter()
-            .map(|elem| elem.clone())
-            .collect::<Vec<PathBuf>>()));
+        .for_each(|chunk_copy| chunks_songs.push(chunk_copy.to_vec()));
 
     chunks_songs
 }
@@ -74,15 +72,13 @@ fn query_songs(query: &str, playlist_vec: Vec<Playlist>, chunks_songs: Vec<Vec<P
     for chunk in chunks_songs {
         let query_copy = query.to_owned().clone();
 
-        let playlist_songs = playlist_vec.clone();
+        let playlists = playlist_vec.clone();
 
         let cloned_v = final_play.clone();
         let handle = thread::spawn(move || {
-            query_walk(&chunk, &playlist_songs, &query_copy)
-                .map(|arr| cloned_v.lock().unwrap().extend(arr));
-            // if final_playlist.is_some() {
-            //     cloned_v.lock().unwrap().extend(final_playlist);
-            // }
+            if let Some(arr) = query_walk(&chunk, &playlists, &query_copy) {
+                cloned_v.lock().unwrap().extend(arr)
+            }
         });
         handles.push(handle);
     }
@@ -131,7 +127,7 @@ fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
     playlist_vec
 }
 
-fn print(vec: &Vec<PathBuf>, output: Option<&Path>) {
+fn print(vec: &[PathBuf], output: Option<&Path>) {
     let map = vec.iter()
         .map(|song| song.as_path().display());
 
