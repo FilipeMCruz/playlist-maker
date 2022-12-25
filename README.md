@@ -50,7 +50,7 @@ OPTIONS:
 
 ### Installation
 
-The only machine where this application was properly tested was archlinux running 6.0.7-arch1-1 kernel and rust 1.65 version.
+The only OS where this application was properly tested was archlinux.
 
 #### Direct via Cargo
 
@@ -85,5 +85,4 @@ paru -S playlist-maker-rs-git
 ### Future work
 
 - Test the application;
-- Simplify and optimize `playlist-maker`;
 - Study how hard it is to do this for spotify or soundcloud songs/playlists;

@@ -4,8 +4,8 @@ extern crate pest_derive;
 mod song_tag;
 mod playlist;
 mod query_walk;
-mod path_extended;
-mod pair_extended;
+mod path_matching;
+mod string_extractor;
 
 use std::{thread};
 use std::borrow::BorrowMut;
@@ -20,7 +20,7 @@ use clap::Parser;
 use walkdir::{WalkDir};
 
 use playlist::Playlist;
-use path_extended::ExtendedPath;
+use path_matching::ExtensionExtractor;
 
 use crate::query_walk::query_walk;
 

@@ -6,7 +6,7 @@ use pest::Parser;
 
 use crate::playlist::Playlist;
 use crate::song_tag::{SearchType, SongTag};
-use crate::pair_extended::{ExtendedRulePair, ExtendedRulePairs};
+use crate::string_extractor::{InnerStringExtractor, StringExtractor};
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"] // relative to src
