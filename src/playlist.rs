@@ -7,7 +7,7 @@ pub struct Playlist {
 }
 
 impl Playlist {
-    pub fn filter(&self, vec: &Vec<PathBuf>) -> Vec<PathBuf> {
+    pub fn filter(&self, vec: &[PathBuf]) -> Vec<PathBuf> {
         return vec.iter()
             .filter(|song| self.songs.contains(song))
             .map(|song| song.to_owned())
