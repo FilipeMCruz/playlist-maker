@@ -41,38 +41,40 @@ impl SongTag {
         }
     }
 
-    fn has_info(&self, metadata_tag: Tag) -> Option<String> {
-        match self.tag_type.to_lowercase().as_ref() {
+    fn get_info(&self, metadata_tag: Tag) -> Option<String> {
+        match self.tag_type.to_lowercase().as_str() {
             "title" => metadata_tag.title().map(|e| e.to_string()),
             "artist" => metadata_tag.artist().map(|e| e.to_string()),
             "album" => metadata_tag.album().map(|e| e.to_string()),
             "albumartist" => metadata_tag.album_artist().map(|e| e.to_string()),
-            "year" | "date" | "beforeyear" | "beforedate" | "afteryear" | "afterdate" => Some(metadata_tag.year()?.to_string()),
+            "year" | "date" | "beforeyear" | "beforedate" | "afteryear" | "afterdate" => metadata_tag.year().map(|e| e.to_string()),
             "genre" => metadata_tag.genre().map(|e| e.to_string()),
-            "disknumber" => Some(metadata_tag.disc()?.to_string()),
+            "disknumber" => metadata_tag.disc().map(|e| e.to_string()),
             _ => None
         }
     }
 
     fn is_regex_match(&self, metadata_tag: Tag) -> bool {
-        self.has_info(metadata_tag).map_or(false, |info| {
-            match self.tag_type.to_lowercase().as_ref() {
-                "title" => self.metadata.regex.is_match(info.as_str()),
-                "artist" => self.metadata.regex.is_match(info.as_str()),
-                "album" => self.metadata.regex.is_match(info.as_str()),
-                "albumartist" => self.metadata.regex.is_match(info.as_str()),
-                "year" | "date" => self.metadata.regex.is_match(info.as_str()),
-                "genre" => self.metadata.regex.is_match(info.as_str()),
-                "disknumber" => self.metadata.regex.is_match(info.as_str()),
-                _ => false
-            }
-        })
+        self.get_info(metadata_tag)
+            .map_or(false, |info_s| {
+                let info = info_s.as_str();
+                match self.tag_type.to_lowercase().as_str() {
+                    "title" => self.metadata.regex.is_match(info),
+                    "artist" => self.metadata.regex.is_match(info),
+                    "album" => self.metadata.regex.is_match(info),
+                    "albumartist" => self.metadata.regex.is_match(info),
+                    "year" | "date" => self.metadata.regex.is_match(info),
+                    "genre" => self.metadata.regex.is_match(info),
+                    "disknumber" => self.metadata.regex.is_match(info),
+                    _ => false
+                }
+            })
     }
 
     fn is_contains_match(&self, metadata_tag: Tag) -> bool {
-        self.has_info(metadata_tag).map_or(false, |info| {
+        self.get_info(metadata_tag).map_or(false, |info| {
             let metadata = self.metadata.exact.as_str();
-            match self.tag_type.to_lowercase().as_ref() {
+            match self.tag_type.to_lowercase().as_str() {
                 "title" => info.contains(metadata),
                 "artist" => info.contains(metadata),
                 "album" => info.contains(metadata),
@@ -86,9 +88,9 @@ impl SongTag {
     }
 
     fn is_literal_match(&self, metadata_tag: Tag) -> bool {
-        self.has_info(metadata_tag).map_or(false, |info| {
+        self.get_info(metadata_tag).map_or(false, |info| {
             let metadata = self.metadata.exact.as_str();
-            match self.tag_type.to_lowercase().as_ref() {
+            match self.tag_type.to_lowercase().as_str() {
                 "title" => info == metadata,
                 "artist" => info == metadata,
                 "album" => info == metadata,

@@ -25,7 +25,9 @@ regex = { "R_" }
 
 contains = { "C_" }
 
-tag = { ( regex | contains )? ~ string ~ "(" ~ string_literal ~ ")" }
+empty = {""}
+
+tag = { ( regex | contains | empty ) ~ string ~ "(" ~ string_literal ~ ")" }
 
 playlist = { "InPlaylist(" ~ string_literal ~ ")" }
 
@@ -35,7 +37,7 @@ string_literal = _{ ( quotes ~ string ~ quotes | quotes ~ string ~ quotes ) }
 
 string = @{ char* }
 
-char = { ASCII_ALPHANUMERIC | WHITESPACE | "_" | "|" | "[" | "]" | "^" | "?" | "-" | "?" | "*" | "+" | "?" | "{" | "}" }
+char = { ASCII_ALPHANUMERIC | WHITESPACE | "_" | "|" | "[" | "]" | "^" | "?" | "-" | "?" | "*" | "+" | "?" | "{" | "}" | "." }
 
 WHITESPACE = _{ " " | "\t" }
 

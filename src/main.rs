@@ -8,7 +8,6 @@ mod path_matching;
 mod string_extractor;
 
 use std::{thread};
-use std::borrow::BorrowMut;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::io::Write;
@@ -49,21 +48,19 @@ fn main() {
 
     let playlist_vec = get_playlists(cli.playlist);
 
-    let chunks_songs = divide_songs_by_threads(get_songs(cli.input));
+    let all_songs = get_songs(cli.input);
+
+    let chunks_songs = divide_songs_by_threads(all_songs);
 
     let final_play = query_songs(&cli.query, playlist_vec, chunks_songs);
 
     print(&final_play, cli.output.as_deref());
 }
 
-fn divide_songs_by_threads(songs: Vec<PathBuf>) -> Vec<Vec<PathBuf>> {
-    let mut chunks_songs: Vec<Vec<PathBuf>> = Vec::new();
-
-    songs.chunks(songs.len() / num_cpus::get()).collect::<Vec<&[PathBuf]>>()
-        .iter()
-        .for_each(|chunk_copy| chunks_songs.push(chunk_copy.to_vec()));
-
-    chunks_songs
+fn divide_songs_by_threads(all_songs: Vec<PathBuf>) -> Vec<Vec<PathBuf>> {
+    all_songs.chunks(all_songs.len() /*/ num_cpus::get()*/)
+        .map(|songs| songs.to_vec())
+        .collect::<Vec<Vec<_>>>()
 }
 
 fn query_songs(query: &str, playlist_vec: Vec<Playlist>, chunks_songs: Vec<Vec<PathBuf>>) -> Vec<PathBuf> {
@@ -82,31 +79,25 @@ fn query_songs(query: &str, playlist_vec: Vec<Playlist>, chunks_songs: Vec<Vec<P
         });
         handles.push(handle);
     }
-    handles.into_iter().for_each(|handle| handle.join().unwrap());
+    handles.into_iter().for_each(|handle| handle.join().expect("Could not join on main threads"));
 
     let final_playlist = final_play.lock().unwrap().to_vec();
     final_playlist
 }
 
 fn get_songs(input: Vec<PathBuf>) -> Vec<PathBuf> {
-    let mut vec = Vec::new();
-    for dir in input {
-        if dir.exists() {
-            walk(dir, vec.borrow_mut());
-        } else {
-            println!("Folder {} does not exist!", dir.display());
-            exit(2);
-        }
-    }
-    vec
+    input.iter()
+        .filter(|dir| dir.is_dir())
+        .flat_map(|dir| walk(dir.to_owned()))
+        .collect()
 }
 
-fn walk(dir: PathBuf, ret: &mut Vec<PathBuf>) {
+fn walk(dir: PathBuf) -> Vec<PathBuf> {
     WalkDir::new(dir).into_iter()
         .filter_entry(|entry| entry.path().match_extension_or_dir("mp3"))
         .map(|entry| entry.unwrap().into_path())
         .filter(|entry| entry.is_file())
-        .for_each(|entry| ret.push(entry));
+        .collect::<Vec<PathBuf>>()
 }
 
 fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
@@ -132,7 +123,7 @@ fn print(vec: &[PathBuf], output: Option<&Path>) {
         .map(|song| song.as_path().display());
 
     match output {
-        None => { map.for_each(|song| println!("{}", song)); }
+        None => map.for_each(|song| println!("{}", song)),
         Some(out) => {
             let mut file = File::create(out).unwrap();
             map.for_each(|song| writeln!(&mut file, "{}", song).unwrap());
