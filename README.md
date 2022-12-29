@@ -34,18 +34,17 @@ Query can be build using the following tokens:
 ## Command-line options
 
 ```
-USAGE:
-    playlist-maker [OPTIONS] --input <INPUT>... --query <QUERY>
+Create playlists using a query language
 
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+Usage: playlist-maker [OPTIONS] --query <QUERY>
 
-OPTIONS:
-    -i, --input <INPUT>...          Directory with songs to query from (can be repeated if needed)
-    -o, --output <OUTPUT>           File to write the playlist to (if not specified send to stdout)
-    -p, --playlist <PLAYLIST>...    Path to playlist to be used in the query (can be repeated if needed)
-    -q, --query <QUERY>             Query to execute
+Options:
+  -i, --input <INPUT>        Directory with songs to query from (can be repeated if needed)
+  -o, --output <OUTPUT>      File to write the playlist to (if not specified send to stdout)
+  -p, --playlist <PLAYLIST>  Path to playlist to be used in the query (can be repeated if needed)
+  -q, --query <QUERY>        Query to execute
+  -h, --help                 Print help information
+  -V, --version              Print version information
 ```
 
 ### Installation

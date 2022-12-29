@@ -27,13 +27,11 @@ fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pai
     loop {
         match pairs.next() {
             None => return Some(final_songs),
-            Some(operator) => {
-                let second = pairs.next()?;
+            Some(operator) =>
                 match operator.inner_rule()? {
-                    Rule::and => final_songs = filter_token(&final_songs, playlist_vec, second)?,
-                    _ => final_songs.extend(filter_token(vec, playlist_vec, second)?)
+                    Rule::and => final_songs = filter_token(&final_songs, playlist_vec, pairs.next()?)?,
+                    _ => final_songs.extend(filter_token(vec, playlist_vec, pairs.next()?)?)
                 }
-            }
         }
     }
 }

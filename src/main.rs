@@ -23,11 +23,9 @@ use path_matching::ExtensionExtractor;
 
 use crate::query_walk::query_walk;
 
-#[derive(Parser)]
-#[command(name = "playlist-maker")]
-#[command(author = "FilipeMCruz <filipeCruz@tuta.io>")]
-#[command(version = "0.3.0")]
-#[command(about = "Create playlists using a query language", long_about = None)]
+/// Create playlists using a query language
+#[derive(Parser, Debug)]
+#[command(version, author, about, long_about = None)]
 struct Cli {
     ///Directory with songs to query from (can be repeated if needed)
     #[arg(short, long)]
