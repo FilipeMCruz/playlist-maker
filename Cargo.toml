@@ -15,4 +15,4 @@ num_cpus = "1.15.0"
 [dependencies.clap]
 version = "4.0.32"
 default-features = false
-features = ["derive", "std", "suggestions", "color"]
+features = ["derive", "std", "help", "usage", "suggestions", "color"]
