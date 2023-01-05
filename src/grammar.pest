@@ -1,5 +1,9 @@
 
-query = _{ "Play(" ~ query_expr ~ ")" }
+query = _{ (play | index ) ~ "(" ~ query_expr ~ ")" }
+
+play = { "Play" }
+
+index = { "Index" }
 
 query_expr = { token ~ (operator ~ token)* }
 

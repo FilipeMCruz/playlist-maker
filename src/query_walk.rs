@@ -1,27 +1,46 @@
-use std::path::PathBuf;
 use std::process::exit;
 
 use pest::iterators::Pair;
 use pest::Parser;
 
 use crate::playlist::Playlist;
-use crate::song_tag::{SearchType, SongTag};
+use crate::song::Song;
+use crate::song_tag_checker::{SearchType, SongTagChecker};
 use crate::string_extractor::{InnerStringExtractor, RuleExtractor, StringExtractor};
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"] // relative to src
 struct ExprParser;
 
-pub fn query_walk(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, query: &str) -> Option<Vec<PathBuf>> {
-    let parse_result = ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
-        println!("{}", error);
-        exit(2);
-    }).next()?;
+pub fn query_walk(vec: &Vec<Song>, playlist_vec: &Vec<Playlist>, query: &str) -> Option<Vec<String>> {
+    let mut parse_result = ExprParser::parse(Rule::query, query).ok()?;
 
-    filter_query_expr(vec, playlist_vec, parse_result)
+    let export = parse_result.next()?.as_rule();
+
+    let songs = filter_query_expr(vec, playlist_vec, parse_result.next()?);
+
+    match export {
+        Rule::play => Some(songs?.iter().map(|song| song.path().as_path().display().to_string()).collect()),
+        Rule::index => {
+            Some(songs?.iter()
+                .filter_map(|song| song.metadata())
+                .filter_map(|tag| tag.details())
+                .collect())
+        }
+        _ => None
+    }
 }
 
-fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Option<Vec<PathBuf>> {
+pub fn query_type_is_play(query: &str) -> bool {
+    let mut parse_result = ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
+        println!("{}", error);
+        exit(2);
+    });
+
+    matches!(parse_result.next().unwrap().as_rule(), Rule::play)
+}
+
+fn filter_query_expr(vec: &Vec<Song>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Option<Vec<Song>> {
     let mut pairs = pair.into_inner();
     let mut final_songs = filter_token(vec, playlist_vec, pairs.next()?)?;
     loop {
@@ -36,7 +55,7 @@ fn filter_query_expr(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pai
     }
 }
 
-fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Option<Vec<PathBuf>> {
+fn filter_token(vec: &Vec<Song>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Option<Vec<Song>> {
     let mut pairs = pair.into_inner();
     let first = pairs.next()?;
 
@@ -52,7 +71,7 @@ fn filter_token(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rul
     }
 }
 
-fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Option<Vec<PathBuf>> {
+fn filter_token_type(vec: &Vec<Song>, playlist_vec: &Vec<Playlist>, pair: Pair<Rule>) -> Option<Vec<Song>> {
     match pair.as_rule() {
         Rule::simple_token => filter_simple_token(vec, playlist_vec, pair.into_inner().next()?),
         Rule::rec_token => filter_query_expr(vec, playlist_vec, pair.into_inner().next()?),
@@ -63,7 +82,7 @@ fn filter_token_type(vec: &Vec<PathBuf>, playlist_vec: &Vec<Playlist>, pair: Pai
     }
 }
 
-fn filter_simple_token(vec: &[PathBuf], playlist_vec: &[Playlist], pair: Pair<Rule>) -> Option<Vec<PathBuf>> {
+fn filter_simple_token(vec: &[Song], playlist_vec: &[Playlist], pair: Pair<Rule>) -> Option<Vec<Song>> {
     match pair.as_rule() {
         Rule::playlist => {
             let first = pair.inner_str()?;
@@ -79,7 +98,7 @@ fn filter_simple_token(vec: &[PathBuf], playlist_vec: &[Playlist], pair: Pair<Ru
     }
 }
 
-fn filter_songs_by_tag(vec: &[PathBuf], pair: Pair<Rule>) -> Option<Vec<PathBuf>> {
+fn filter_songs_by_tag(vec: &[Song], pair: Pair<Rule>) -> Option<Vec<Song>> {
     let pair = &mut pair.into_inner();
 
     let search_type = match pair.next()?.as_rule() {
@@ -91,5 +110,6 @@ fn filter_songs_by_tag(vec: &[PathBuf], pair: Pair<Rule>) -> Option<Vec<PathBuf>
     let tag_type = pair.next_str()?;
     let metadata = pair.next_str()?;
 
-    SongTag::new(metadata, tag_type, search_type).filter_tag(vec)
+    let songs = SongTagChecker::new(metadata, tag_type, search_type).filter(vec);
+    Some(songs)
 }

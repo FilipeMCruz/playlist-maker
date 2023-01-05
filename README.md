@@ -2,7 +2,7 @@
 
 _Playlist Maker_ is a fast and simple console application that allows users to create playlists using a query like:
 
-``` none
+```none
 Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
 ```
 
@@ -10,6 +10,9 @@ Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_song
 
 Query can be build using the following tokens:
 
+- Main options:
+  - Play (creates a playlist);
+  - Index (creates an index, csv with song details, of all matching songs to speed up following queries);
 - Song tags (any case):
   - title;
   - artist;
@@ -31,6 +34,20 @@ Query can be build using the following tokens:
   - `not` operator (`!`);
   - parenthesis (`()`).
 
+## Query Examples
+
+```none
+Index(Afteryear("1000"))
+```
+
+Creates an index with all music, I'll assume.
+
+```none
+Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
+```
+
+Creates a playlist where all songs have the album artist _Joji_ or the artist contains the string _Tom Misch_ and aren't in the _old_loved_songs_ playlist.
+
 ## Command-line options
 
 ```
@@ -39,9 +56,9 @@ Create playlists using a query language
 Usage: playlist-maker [OPTIONS] --query <QUERY>
 
 Options:
-  -i, --input <INPUT>        Directory with songs to query from (can be repeated if needed)
-  -o, --output <OUTPUT>      File to write the playlist to (if not specified send to stdout)
-  -p, --playlist <PLAYLIST>  Path to playlist to be used in the query (can be repeated if needed)
+  -i, --input <INPUT>        Directory with songs or file with indexed songs to query from (can be repeated if needed)
+  -o, --output <OUTPUT>      File to write the query results to (if not specified send to stdout)
+  -p, --playlist <PLAYLIST>  Path to m3u playlist to be used in the query (can be repeated if needed)
   -q, --query <QUERY>        Query to execute
   -h, --help                 Print help information
   -V, --version              Print version information
