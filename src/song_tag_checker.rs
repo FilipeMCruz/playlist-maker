@@ -1,7 +1,8 @@
-use std::path::{PathBuf};
-
-use id3::{Tag, TagLike};
+use id3::{Tag};
 use regex::Regex;
+use crate::song::Song;
+use crate::song::Song::{Indexed, Real};
+use crate::song_metadata::{SongMetadata, TagDetails};
 
 struct MetadataType {
     regex: Regex,
@@ -15,13 +16,13 @@ pub enum SearchType {
     Literal,
 }
 
-pub struct SongTag {
+pub struct SongTagChecker {
     metadata: MetadataType,
     tag_type: String,
     search_type: SearchType,
 }
 
-impl SongTag {
+impl SongTagChecker {
     pub fn new(metadata_string: String, tag_type: String, is_regex: SearchType) -> Self {
         Self {
             metadata: match is_regex {
@@ -33,7 +34,7 @@ impl SongTag {
         }
     }
 
-    fn check_tag(&self, metadata_tag: Tag) -> bool {
+    fn is_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
         match self.search_type {
             SearchType::Regex => self.is_regex_match(metadata_tag),
             SearchType::Literal => self.is_literal_match(metadata_tag),
@@ -41,7 +42,7 @@ impl SongTag {
         }
     }
 
-    fn get_info(&self, metadata_tag: Tag) -> Option<String> {
+    fn get_info(&self, metadata_tag: &dyn SongMetadata) -> Option<String> {
         match self.tag_type.to_lowercase().as_str() {
             "title" => metadata_tag.title().map(|e| e.to_string()),
             "artist" => metadata_tag.artist().map(|e| e.to_string()),
@@ -54,7 +55,7 @@ impl SongTag {
         }
     }
 
-    fn is_regex_match(&self, metadata_tag: Tag) -> bool {
+    fn is_regex_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
         self.get_info(metadata_tag)
             .map_or(false, |info_s| {
                 let info = info_s.as_str();
@@ -71,7 +72,7 @@ impl SongTag {
             })
     }
 
-    fn is_contains_match(&self, metadata_tag: Tag) -> bool {
+    fn is_contains_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
         self.get_info(metadata_tag).map_or(false, |info| {
             let metadata = self.metadata.exact.as_str();
             match self.tag_type.to_lowercase().as_str() {
@@ -87,7 +88,7 @@ impl SongTag {
         })
     }
 
-    fn is_literal_match(&self, metadata_tag: Tag) -> bool {
+    fn is_literal_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
         self.get_info(metadata_tag).map_or(false, |info| {
             let metadata = self.metadata.exact.as_str();
             match self.tag_type.to_lowercase().as_str() {
@@ -95,8 +96,8 @@ impl SongTag {
                 "artist" => info == metadata,
                 "album" => info == metadata,
                 "albumartist" => info == metadata,
-                "beforeyear" | "beforedate" => info.parse::<i32>().unwrap().gt(&metadata.parse::<i32>().unwrap()),
-                "afteryear" | "afterdate" => info.parse::<i32>().unwrap().le(&metadata.parse::<i32>().unwrap()),
+                "beforeyear" | "beforedate" => info.parse::<i32>().unwrap().le(&metadata.parse::<i32>().unwrap()),
+                "afteryear" | "afterdate" => info.parse::<i32>().unwrap().gt(&metadata.parse::<i32>().unwrap()),
                 "year" | "date" => info == metadata,
                 "genre" => info == metadata,
                 "disknumber" => info == metadata,
@@ -105,11 +106,23 @@ impl SongTag {
         })
     }
 
-    pub fn filter_tag(&self, vec: &[PathBuf]) -> Option<Vec<PathBuf>> {
-        Some(vec.iter()
-            .map(|song| (song, Tag::read_from_path(song)))
-            .filter(|(_, tag)| tag.is_ok() && self.check_tag(tag.as_ref().unwrap().to_owned()))
-            .map(|(song, _)| song.to_owned())
-            .collect::<Vec<PathBuf>>())
+    pub fn filter(&self, vec: &[Song]) -> Vec<Song> {
+        vec.iter()
+            .filter(|song| {
+                match song {
+                    Real(path) => {
+                        let Ok(tag) = Tag::read_from_path(path) else {
+                            return false;
+                        };
+                        self.is_match(&TagDetails {
+                            path: path.to_str().unwrap().to_string(),
+                            tag,
+                        })
+                    }
+                    Indexed(details) => self.is_match(details)
+                }
+            })
+            .map(|song| song.to_owned())
+            .collect::<Vec<Song>>()
     }
 }

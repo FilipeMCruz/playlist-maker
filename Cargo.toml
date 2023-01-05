@@ -1,6 +1,6 @@
 [package]
 name = "playlist-maker"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["FilipeMCruz <filipeCruz@tuta.io>"]
 edition = "2021"
 
@@ -11,6 +11,9 @@ walkdir = "2.3.2"
 id3 = "1.5.1"
 regex = "1.7.0"
 num_cpus = "1.15.0"
+csv = "1.1.6"
+serde = "1"
+serde_derive = "1"
 
 [dependencies.clap]
 version = "4.0.32"

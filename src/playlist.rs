@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use crate::song::Song;
 
 #[derive(Clone)]
 pub struct Playlist {
@@ -7,10 +8,10 @@ pub struct Playlist {
 }
 
 impl Playlist {
-    pub fn filter(&self, vec: &[PathBuf]) -> Vec<PathBuf> {
+    pub fn filter(&self, vec: &[Song]) -> Vec<Song> {
         return vec.iter()
-            .filter(|song| self.songs.contains(song))
+            .filter(|song| self.songs.contains(&song.path()))
             .map(|song| song.to_owned())
-            .collect::<Vec<PathBuf>>();
+            .collect::<Vec<Song>>();
     }
 }
