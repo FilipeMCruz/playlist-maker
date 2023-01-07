@@ -24,7 +24,7 @@ pub fn query_walk(vec: &Vec<Song>, playlist_vec: &Vec<Playlist>, query: &str) ->
         Rule::index => {
             Some(songs?.iter()
                 .filter_map(|song| song.metadata())
-                .filter_map(|tag| tag.details())
+                .map(|tag| tag.details())
                 .collect())
         }
         _ => None

@@ -9,7 +9,7 @@ mod string_extractor;
 mod song_metadata;
 mod song;
 
-use std::thread;
+use std::{thread};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::io::Write;
@@ -18,7 +18,8 @@ use std::process::exit;
 use std::sync::{Arc, Mutex};
 
 use clap::Parser;
-use walkdir::{WalkDir};
+
+use walkdir::WalkDir;
 
 use playlist::Playlist;
 use path_matching::ExtensionExtractor;
@@ -34,7 +35,7 @@ extern crate serde_derive;
 /// Create playlists using a query language
 #[derive(Parser, Debug)]
 #[command(version, author, about, long_about = None)]
-struct Cli {
+pub struct Cli {
     ///Directory with songs or file with indexed songs to query from (can be repeated if needed)
     #[arg(short, long)]
     input: Vec<PathBuf>,
@@ -49,8 +50,12 @@ struct Cli {
     query: String,
 }
 
+pub fn build_cli() -> Cli {
+    Cli::parse()
+}
+
 fn main() {
-    let cli = Cli::parse();
+    let cli = build_cli();
 
     let playlist_vec = get_playlists(cli.playlist);
 

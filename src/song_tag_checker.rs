@@ -1,4 +1,4 @@
-use id3::{Tag};
+use id3::Tag;
 use regex::Regex;
 use crate::song::Song;
 use crate::song::Song::{Indexed, Real};
@@ -23,14 +23,14 @@ pub struct SongTagChecker {
 }
 
 impl SongTagChecker {
-    pub fn new(metadata_string: String, tag_type: String, is_regex: SearchType) -> Self {
+    pub fn new(metadata_string: String, tag_type: String, search_type: SearchType) -> Self {
         Self {
-            metadata: match is_regex {
+            metadata: match search_type {
                 SearchType::Regex => MetadataType { regex: Regex::new(metadata_string.as_str()).unwrap(), exact: "".to_string() },
                 SearchType::Contains | SearchType::Literal => MetadataType { regex: Regex::new("").unwrap(), exact: metadata_string }
             },
             tag_type,
-            search_type: is_regex,
+            search_type,
         }
     }
 
@@ -50,63 +50,38 @@ impl SongTagChecker {
             "albumartist" => metadata_tag.album_artist().map(|e| e.to_string()),
             "year" | "date" | "beforeyear" | "beforedate" | "afteryear" | "afterdate" => metadata_tag.year().map(|e| e.to_string()),
             "genre" => metadata_tag.genre().map(|e| e.to_string()),
-            "disknumber" => metadata_tag.disc().map(|e| e.to_string()),
+            "disknumber" | "disc" => metadata_tag.disc().map(|e| e.to_string()),
             _ => None
         }
     }
 
     fn is_regex_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
-        self.get_info(metadata_tag)
-            .map_or(false, |info_s| {
-                let info = info_s.as_str();
-                match self.tag_type.to_lowercase().as_str() {
-                    "title" => self.metadata.regex.is_match(info),
-                    "artist" => self.metadata.regex.is_match(info),
-                    "album" => self.metadata.regex.is_match(info),
-                    "albumartist" => self.metadata.regex.is_match(info),
-                    "year" | "date" => self.metadata.regex.is_match(info),
-                    "genre" => self.metadata.regex.is_match(info),
-                    "disknumber" => self.metadata.regex.is_match(info),
-                    _ => false
-                }
-            })
+        self.get_info(metadata_tag).map_or(false, |info| self.metadata.regex.is_match(info.as_str()))
     }
 
     fn is_contains_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
-        self.get_info(metadata_tag).map_or(false, |info| {
-            let metadata = self.metadata.exact.as_str();
-            match self.tag_type.to_lowercase().as_str() {
-                "title" => info.contains(metadata),
-                "artist" => info.contains(metadata),
-                "album" => info.contains(metadata),
-                "albumartist" => info.contains(metadata),
-                "year" | "date" => info.contains(metadata),
-                "genre" => info.contains(metadata),
-                "disknumber" => info.contains(metadata),
-                _ => false
-            }
-        })
+        self.get_info(metadata_tag).map_or(false, |info| info.contains(self.metadata.exact.as_str()))
+    }
+
+    fn valid_type(&self) -> bool {
+        !["beforeyear", "beforedate", "afteryear", "afterdate"].contains(&self.tag_type.to_lowercase().as_str()) || SearchType::Literal == self.search_type
     }
 
     fn is_literal_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
         self.get_info(metadata_tag).map_or(false, |info| {
             let metadata = self.metadata.exact.as_str();
             match self.tag_type.to_lowercase().as_str() {
-                "title" => info == metadata,
-                "artist" => info == metadata,
-                "album" => info == metadata,
-                "albumartist" => info == metadata,
                 "beforeyear" | "beforedate" => info.parse::<i32>().unwrap().le(&metadata.parse::<i32>().unwrap()),
                 "afteryear" | "afterdate" => info.parse::<i32>().unwrap().gt(&metadata.parse::<i32>().unwrap()),
-                "year" | "date" => info == metadata,
-                "genre" => info == metadata,
-                "disknumber" => info == metadata,
-                _ => false
+                _ => info == metadata,
             }
         })
     }
 
     pub fn filter(&self, vec: &[Song]) -> Vec<Song> {
+        if !self.valid_type() {
+            return Vec::new();
+        }
         vec.iter()
             .filter(|song| {
                 match song {
