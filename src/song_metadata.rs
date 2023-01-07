@@ -8,7 +8,7 @@ pub trait SongMetadata {
     fn year(&self) -> Option<i32>;
     fn genre(&self) -> Option<&str>;
     fn disc(&self) -> Option<u32>;
-    fn details(&self) -> Option<String>;
+    fn details(&self) -> String;
 }
 
 #[derive(Clone, PartialEq)]
@@ -46,7 +46,7 @@ impl SongMetadata for TagDetails {
         self.tag.disc()
     }
 
-    fn details(&self) -> Option<String> {
+    fn details(&self) -> String {
         IndexDetails {
             path: self.path.to_string(),
             title: self.tag.title().map(|e| e.to_string()),
@@ -108,17 +108,17 @@ impl SongMetadata for IndexDetails {
         self.disc
     }
 
-    fn details(&self) -> Option<String> {
+    fn details(&self) -> String {
         let rev = [
             self.path.as_str(),
-            self.title()?,
-            self.artist()?,
-            self.album()?,
-            self.album_artist()?,
-            self.year()?.to_string().as_str(),
-            self.genre()?,
-            self.disc()?.to_string().as_str(),
+            self.title().unwrap_or(""),
+            self.artist().unwrap_or(""),
+            self.album().unwrap_or(""),
+            self.album_artist().unwrap_or(""),
+            self.year().unwrap_or(0).to_string().as_str(),
+            self.genre().unwrap_or(""),
+            self.disc().unwrap_or(0).to_string().as_str(),
         ].join("\";\"");
-        Some(format!("\"{}\"", rev))
+        format!("\"{}\"", rev)
     }
 }

@@ -6,6 +6,8 @@ _Playlist Maker_ is a fast and simple console application that allows users to c
 Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
 ```
 
+The program extracts information from Id3v2.3 tags and verifies if they match the query issued.  
+
 ## Query Features
 
 Query can be build using the following tokens:
@@ -22,7 +24,7 @@ Query can be build using the following tokens:
   - beforeyear (only for literal tags);
   - afteryear (only for literal tags);
   - genre;
-  - disknumber.
+  - disknumber | disc.
 - Query objects:
   - literal song tags;
   - regex in song tags (`R_`);
