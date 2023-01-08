@@ -14,7 +14,7 @@ Query can be build using the following tokens:
 
 - Main options:
   - Play (creates a playlist);
-  - Index (creates an index, csv with song details, of all matching songs to speed up following queries);
+  - Index (creates an index, csv with song details, of all matching songs to speed up following queries).
 - Song tags (any case):
   - title;
   - artist;
@@ -100,7 +100,11 @@ OR (for the latest commit version)
 paru -S playlist-maker-rs-git
 ```
 
+### Problems
+
+- For some reason the id3 crate in use couldn't read id3v2.4 tags, only id3v2.3.
+
 ### Future work
 
 - Test the application;
-- Study how hard it is to do this for spotify or soundcloud songs/playlists;
+- Study how hard it is to do this for spotify or soundcloud songs/playlists.
