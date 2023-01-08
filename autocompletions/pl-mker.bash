@@ -27,14 +27,6 @@ _pl-mker() {
             fi
             case "${prev}" in
                 
-                --type)
-                    COMPREPLY=($(compgen -f "${cur}"))
-                    return 0
-                    ;;
-                    -t)
-                    COMPREPLY=($(compgen -f "${cur}"))
-                    return 0
-                    ;;
                 --output)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0

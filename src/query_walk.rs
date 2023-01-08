@@ -110,6 +110,6 @@ fn filter_songs_by_tag(vec: &[Song], pair: Pair<Rule>) -> Option<Vec<Song>> {
     let tag_type = pair.next_str()?;
     let metadata = pair.next_str()?;
 
-    let songs = SongTagChecker::new(metadata, tag_type, search_type).filter(vec);
-    Some(songs)
+    SongTagChecker::new(metadata, tag_type, search_type)
+        .map(|checker| checker.filter(vec))
 }
