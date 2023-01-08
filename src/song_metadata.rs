@@ -17,6 +17,21 @@ pub struct TagDetails {
     pub path: String,
 }
 
+impl TagDetails {
+    pub fn indexed(&self) -> IndexDetails {
+        IndexDetails {
+            path: self.path.to_string(),
+            title: self.tag.title().map(|e| e.to_string()),
+            artist: self.tag.artist().map(|e| e.to_string()),
+            album: self.tag.album().map(|e| e.to_string()),
+            album_artist: self.tag.album_artist().map(|e| e.to_string()),
+            year: self.tag.year(),
+            genre: self.tag.genre().map(|e| e.to_string()),
+            disc: self.tag.disc(),
+        }
+    }
+}
+
 impl SongMetadata for TagDetails {
     fn title(&self) -> Option<&str> {
         self.tag.title()
@@ -47,16 +62,7 @@ impl SongMetadata for TagDetails {
     }
 
     fn details(&self) -> String {
-        IndexDetails {
-            path: self.path.to_string(),
-            title: self.tag.title().map(|e| e.to_string()),
-            artist: self.tag.artist().map(|e| e.to_string()),
-            album: self.tag.album().map(|e| e.to_string()),
-            album_artist: self.tag.album_artist().map(|e| e.to_string()),
-            year: self.tag.year(),
-            genre: self.tag.genre().map(|e| e.to_string()),
-            disc: self.tag.disc(),
-        }.details()
+        self.indexed().details()
     }
 }
 

@@ -15,16 +15,14 @@ _pl-mker() {
 
     local context curcontext="$curcontext" state line
     _arguments "${_arguments_options[@]}" \
-'-t+[Local or spotify/soundcloud, etc (support local only for now, default to local)]' \
-'--type=[Local or spotify/soundcloud, etc (support local only for now, default to local)]' \
-'-o+[File to write the playlist to (if not specified send to stdout)]' \
-'--output=[File to write the playlist to (if not specified send to stdout)]' \
+'-o+[File to write the query results to (if not specified send to stdout)]' \
+'--output=[File to write the query results to (if not specified send to stdout)]' \
 '-q+[Query to execute]' \
 '--query=[Query to execute]' \
-'*-i+[Directory with songs to query from (can be repeated if needed)]' \
-'*--input=[Directory with songs to query from (can be repeated if needed)]' \
-'*-p+[Path to playlist to be used in the query (can be repeated if needed)]' \
-'*--playlist=[Path to playlist to be used in the query (can be repeated if needed)]' \
+'*-i+[Directory with songs or file with indexed songs to query from (can be repeated if needed)]' \
+'*--input=[Directory with songs or file with indexed songs to query from (can be repeated if needed)]' \
+'*-p+[Path to m3u playlist to be used in the query (can be repeated if needed)]' \
+'*--playlist=[Path to m3u playlist to be used in the query (can be repeated if needed)]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \

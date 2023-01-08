@@ -23,15 +23,24 @@ pub struct SongTagChecker {
 }
 
 impl SongTagChecker {
-    pub fn new(metadata_string: String, tag_type: String, search_type: SearchType) -> Self {
-        Self {
+    pub fn new(metadata_string: String, tag_type: String, search_type: SearchType) -> Option<Self> {
+        let checker = Self {
             metadata: match search_type {
                 SearchType::Regex => MetadataType { regex: Regex::new(metadata_string.as_str()).unwrap(), exact: "".to_string() },
                 SearchType::Contains | SearchType::Literal => MetadataType { regex: Regex::new("").unwrap(), exact: metadata_string }
             },
             tag_type,
             search_type,
+        };
+
+        match checker.valid_type() {
+            true => Some(checker),
+            false => None
         }
+    }
+
+    fn valid_type(&self) -> bool {
+        !["beforeyear", "beforedate", "afteryear", "afterdate"].contains(&self.tag_type.to_lowercase().as_str()) || SearchType::Literal == self.search_type
     }
 
     fn is_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
@@ -63,10 +72,6 @@ impl SongTagChecker {
         self.get_info(metadata_tag).map_or(false, |info| info.contains(self.metadata.exact.as_str()))
     }
 
-    fn valid_type(&self) -> bool {
-        !["beforeyear", "beforedate", "afteryear", "afterdate"].contains(&self.tag_type.to_lowercase().as_str()) || SearchType::Literal == self.search_type
-    }
-
     fn is_literal_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
         self.get_info(metadata_tag).map_or(false, |info| {
             let metadata = self.metadata.exact.as_str();
@@ -79,25 +84,22 @@ impl SongTagChecker {
     }
 
     pub fn filter(&self, vec: &[Song]) -> Vec<Song> {
-        if !self.valid_type() {
-            return Vec::new();
-        }
         vec.iter()
-            .filter(|song| {
+            .filter_map(|song| {
                 match song {
                     Real(path) => {
                         let Ok(tag) = Tag::read_from_path(path) else {
-                            return false;
+                            return None;
                         };
-                        self.is_match(&TagDetails {
+                        Some(Indexed(TagDetails {
                             path: path.to_str().unwrap().to_string(),
                             tag,
-                        })
+                        }.indexed()))
                     }
-                    Indexed(details) => self.is_match(details)
+                    Indexed(de) => Some(Indexed(de.to_owned()))
                 }
             })
-            .map(|song| song.to_owned())
+            .filter(|song| self.is_match(song.metadata().unwrap().as_ref()))
             .collect::<Vec<Song>>()
     }
 }

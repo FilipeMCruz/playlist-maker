@@ -15,16 +15,14 @@ edit:completion:arg-completer[pl-mker] = [@words]{
     }
     completions = [
         &'pl-mker'= {
-            cand -t 'Local or spotify/soundcloud, etc (support local only for now, default to local)'
-            cand --type 'Local or spotify/soundcloud, etc (support local only for now, default to local)'
-            cand -o 'File to write the playlist to (if not specified send to stdout)'
-            cand --output 'File to write the playlist to (if not specified send to stdout)'
+            cand -o 'File to write the query results to (if not specified send to stdout)'
+            cand --output 'File to write the query results to (if not specified send to stdout)'
             cand -q 'Query to execute'
             cand --query 'Query to execute'
-            cand -i 'Directory with songs to query from (can be repeated if needed)'
-            cand --input 'Directory with songs to query from (can be repeated if needed)'
-            cand -p 'Path to playlist to be used in the query (can be repeated if needed)'
-            cand --playlist 'Path to playlist to be used in the query (can be repeated if needed)'
+            cand -i 'Directory with songs or file with indexed songs to query from (can be repeated if needed)'
+            cand --input 'Directory with songs or file with indexed songs to query from (can be repeated if needed)'
+            cand -p 'Path to m3u playlist to be used in the query (can be repeated if needed)'
+            cand --playlist 'Path to m3u playlist to be used in the query (can be repeated if needed)'
             cand -h 'Prints help information'
             cand --help 'Prints help information'
             cand -V 'Prints version information'
