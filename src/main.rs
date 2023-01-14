@@ -1,28 +1,28 @@
 #[macro_use]
 extern crate pest_derive;
 
-mod song_tag_checker;
+mod path_matching;
 mod playlist;
 mod query_walk;
-mod path_matching;
-mod string_extractor;
-mod song_metadata;
 mod song;
+mod song_metadata;
+mod song_tag_checker;
+mod string_extractor;
 
-use std::{thread};
 use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::io::Write;
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::sync::{Arc, Mutex};
+use std::thread;
 
 use clap::Parser;
 
 use walkdir::WalkDir;
 
-use playlist::Playlist;
 use path_matching::ExtensionExtractor;
+use playlist::Playlist;
 
 use crate::query_walk::{query_type_is_play, query_walk};
 use crate::song::Song;
@@ -71,12 +71,17 @@ fn main() {
 }
 
 fn divide_songs_by_threads(all_songs: Vec<Song>) -> Vec<Vec<Song>> {
-    all_songs.chunks(all_songs.len() / num_cpus::get())
+    all_songs
+        .chunks(all_songs.len() / num_cpus::get())
         .map(|songs| songs.to_vec())
         .collect::<Vec<Vec<_>>>()
 }
 
-fn query_songs(query: &str, playlist_vec: Vec<Playlist>, chunks_songs: Vec<Vec<Song>>) -> Vec<String> {
+fn query_songs(
+    query: &str,
+    playlist_vec: Vec<Playlist>,
+    chunks_songs: Vec<Vec<Song>>,
+) -> Vec<String> {
     let mut handles = Vec::new();
     let final_play = Arc::new(Mutex::new(Vec::new()));
     for chunk in chunks_songs {
@@ -92,14 +97,17 @@ fn query_songs(query: &str, playlist_vec: Vec<Playlist>, chunks_songs: Vec<Vec<S
         });
         handles.push(handle);
     }
-    handles.into_iter().for_each(|handle| handle.join().expect("Could not join on main threads"));
+    handles
+        .into_iter()
+        .for_each(|handle| handle.join().expect("Could not join on main threads"));
 
     let final_playlist = final_play.lock().unwrap().to_vec();
     final_playlist
 }
 
 fn get_songs(input: Vec<PathBuf>) -> Vec<Song> {
-    input.iter()
+    input
+        .iter()
         .filter(|dir| dir.is_dir() || dir.is_file())
         .flat_map(|dir| {
             if dir.is_dir() {
@@ -125,7 +133,8 @@ fn export(file: PathBuf) -> Vec<Song> {
 }
 
 fn walk(dir: PathBuf) -> Vec<Song> {
-    WalkDir::new(dir).into_iter()
+    WalkDir::new(dir)
+        .into_iter()
         .filter_entry(|entry| entry.path().match_extension_or_dir("mp3"))
         .map(|entry| entry.unwrap().into_path())
         .filter(|entry| entry.is_file())
@@ -140,11 +149,16 @@ fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
         if path.match_extension("m3u") {
             playlist_vec.push(Playlist {
                 name: path.display().to_string(),
-                songs: BufReader::new(File::open(path).unwrap()).lines()
-                    .map(|line| PathBuf::from(line.unwrap())).collect(),
+                songs: BufReader::new(File::open(path).unwrap())
+                    .lines()
+                    .map(|line| PathBuf::from(line.unwrap()))
+                    .collect(),
             });
         } else {
-            println!("playlist `{}` does not exist or is invalid (not m3u)!", playlist.display());
+            println!(
+                "playlist `{}` does not exist or is invalid (not m3u)!",
+                playlist.display()
+            );
             exit(2);
         }
     }
@@ -153,21 +167,21 @@ fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
 
 fn print(vec: &[String], output: Option<&Path>, is_play: bool) {
     match (output, is_play) {
-        (None, true) => {
-            vec.iter().for_each(|song| println!("{}", song))
-        }
+        (None, true) => vec.iter().for_each(|song| println!("{}", song)),
         (None, false) => {
             println!("{}", IndexDetails::headers());
             vec.iter().for_each(|song| println!("{}", song));
         }
         (Some(out), true) => {
             let mut file = File::create(out).unwrap();
-            vec.iter().for_each(|song| writeln!(&mut file, "{}", song).unwrap());
+            vec.iter()
+                .for_each(|song| writeln!(&mut file, "{}", song).unwrap());
         }
         (Some(out), false) => {
             let mut file = File::create(out).unwrap();
             writeln!(&mut file, "{}", IndexDetails::headers()).unwrap();
-            vec.iter().for_each(|song| writeln!(&mut file, "{}", song).unwrap());
+            vec.iter()
+                .for_each(|song| writeln!(&mut file, "{}", song).unwrap());
         }
     }
 }
