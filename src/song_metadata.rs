@@ -81,7 +81,8 @@ pub struct IndexDetails {
 
 impl IndexDetails {
     pub fn headers() -> String {
-        "\"path\";\"title\";\"artist\";\"album\";\"album_artist\";\"year\";\"genre\";\"disc\"".to_string()
+        "\"path\";\"title\";\"artist\";\"album\";\"album_artist\";\"year\";\"genre\";\"disc\""
+            .to_string()
     }
 }
 
@@ -124,7 +125,8 @@ impl SongMetadata for IndexDetails {
             self.year().unwrap_or(0).to_string().as_str(),
             self.genre().unwrap_or(""),
             self.disc().unwrap_or(0).to_string().as_str(),
-        ].join("\";\"");
+        ]
+        .join("\";\"");
         format!("\"{}\"", rev)
     }
 }

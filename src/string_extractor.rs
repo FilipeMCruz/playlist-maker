@@ -1,5 +1,5 @@
-use pest::iterators::{Pair, Pairs};
 use crate::query_walk::Rule;
+use pest::iterators::{Pair, Pairs};
 
 pub trait InnerStringExtractor {
     fn inner_str(self) -> Option<String>;
@@ -21,16 +21,12 @@ impl InnerStringExtractor for Pair<'_, Rule> {
 
 impl StringExtractor for Pairs<'_, Rule> {
     fn next_str(&mut self) -> Option<String> {
-        self.next()?
-            .as_str()
-            .parse().ok()
+        self.next()?.as_str().parse().ok()
     }
 }
 
 impl RuleExtractor for Pair<'_, Rule> {
     fn inner_rule(self) -> Option<Rule> {
-        Some(self.into_inner()
-            .next()?
-            .as_rule())
+        Some(self.into_inner().next()?.as_rule())
     }
 }
