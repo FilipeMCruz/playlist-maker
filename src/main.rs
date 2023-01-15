@@ -151,7 +151,7 @@ fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
                 name: path.display().to_string(),
                 songs: BufReader::new(File::open(path).unwrap())
                     .lines()
-                    .map(|line| PathBuf::from(line.unwrap()))
+                    .map(|line| line.unwrap())
                     .collect(),
             });
         } else {
