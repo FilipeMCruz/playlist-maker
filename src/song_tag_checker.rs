@@ -1,5 +1,4 @@
-use crate::song::Song;
-use crate::song_metadata::SongMetadata;
+use crate::song_metadata::IndexDetails;
 use regex::Regex;
 
 struct MetadataType {
@@ -49,7 +48,7 @@ impl SongTagChecker {
             || SearchType::Literal == self.search_type
     }
 
-    fn is_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
+    fn is_match(&self, metadata_tag: &IndexDetails) -> bool {
         match self.search_type {
             SearchType::Regex => self.is_regex_match(metadata_tag),
             SearchType::Literal => self.is_literal_match(metadata_tag),
@@ -57,7 +56,7 @@ impl SongTagChecker {
         }
     }
 
-    fn get_info(&self, metadata_tag: &dyn SongMetadata) -> Option<String> {
+    fn get_info(&self, metadata_tag: &IndexDetails) -> Option<String> {
         match self.tag_type.to_lowercase().as_str() {
             "title" => metadata_tag.title().map(|e| e.to_string()),
             "artist" => metadata_tag.artist().map(|e| e.to_string()),
@@ -72,17 +71,17 @@ impl SongTagChecker {
         }
     }
 
-    fn is_regex_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
+    fn is_regex_match(&self, metadata_tag: &IndexDetails) -> bool {
         self.get_info(metadata_tag)
             .map_or(false, |info| self.metadata.regex.is_match(info.as_str()))
     }
 
-    fn is_contains_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
+    fn is_contains_match(&self, metadata_tag: &IndexDetails) -> bool {
         self.get_info(metadata_tag)
             .map_or(false, |info| info.contains(self.metadata.exact.as_str()))
     }
 
-    fn is_literal_match(&self, metadata_tag: &dyn SongMetadata) -> bool {
+    fn is_literal_match(&self, metadata_tag: &IndexDetails) -> bool {
         self.get_info(metadata_tag).map_or(false, |info| {
             let metadata = self.metadata.exact.as_str();
             match self.tag_type.to_lowercase().as_str() {
@@ -99,10 +98,10 @@ impl SongTagChecker {
         })
     }
 
-    pub fn filter(&self, vec: &[Song]) -> Vec<Song> {
+    pub fn filter(&self, vec: &[IndexDetails]) -> Vec<IndexDetails> {
         vec.iter()
-            .filter_map(|song| song.index())
-            .filter(|song| self.is_match(song.metadata().unwrap().as_ref()))
-            .collect::<Vec<Song>>()
+            .filter(|song| self.is_match(song))
+            .map(|song| song.to_owned())
+            .collect::<Vec<IndexDetails>>()
     }
 }

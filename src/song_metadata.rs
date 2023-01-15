@@ -1,16 +1,5 @@
 use id3::{Tag, TagLike};
 
-pub trait SongMetadata {
-    fn title(&self) -> Option<&str>;
-    fn artist(&self) -> Option<&str>;
-    fn album(&self) -> Option<&str>;
-    fn album_artist(&self) -> Option<&str>;
-    fn year(&self) -> Option<i32>;
-    fn genre(&self) -> Option<&str>;
-    fn disc(&self) -> Option<u32>;
-    fn details(&self) -> String;
-}
-
 #[derive(Clone, PartialEq)]
 pub struct TagDetails {
     pub tag: Tag,
@@ -29,40 +18,6 @@ impl TagDetails {
             genre: self.tag.genre().map(|e| e.to_string()),
             disc: self.tag.disc(),
         }
-    }
-}
-
-impl SongMetadata for TagDetails {
-    fn title(&self) -> Option<&str> {
-        self.tag.title()
-    }
-
-    fn artist(&self) -> Option<&str> {
-        self.tag.artist()
-    }
-
-    fn album(&self) -> Option<&str> {
-        self.tag.album()
-    }
-
-    fn album_artist(&self) -> Option<&str> {
-        self.tag.album_artist()
-    }
-
-    fn year(&self) -> Option<i32> {
-        self.tag.year()
-    }
-
-    fn genre(&self) -> Option<&str> {
-        self.tag.genre()
-    }
-
-    fn disc(&self) -> Option<u32> {
-        self.tag.disc()
-    }
-
-    fn details(&self) -> String {
-        self.indexed().details()
     }
 }
 
@@ -86,36 +41,36 @@ impl IndexDetails {
     }
 }
 
-impl SongMetadata for IndexDetails {
-    fn title(&self) -> Option<&str> {
+impl IndexDetails {    
+    pub fn title(&self) -> Option<&str> {
         self.title.as_deref()
     }
 
-    fn artist(&self) -> Option<&str> {
+    pub fn artist(&self) -> Option<&str> {
         self.artist.as_deref()
     }
 
-    fn album(&self) -> Option<&str> {
+    pub fn album(&self) -> Option<&str> {
         self.album.as_deref()
     }
 
-    fn album_artist(&self) -> Option<&str> {
+    pub fn album_artist(&self) -> Option<&str> {
         self.album_artist.as_deref()
     }
 
-    fn year(&self) -> Option<i32> {
+    pub fn year(&self) -> Option<i32> {
         self.year
     }
 
-    fn genre(&self) -> Option<&str> {
+    pub fn genre(&self) -> Option<&str> {
         self.genre.as_deref()
     }
 
-    fn disc(&self) -> Option<u32> {
+    pub fn disc(&self) -> Option<u32> {
         self.disc
     }
 
-    fn details(&self) -> String {
+    pub fn details(&self) -> String {
         let rev = [
             self.path.as_str(),
             self.title().unwrap_or(""),
@@ -126,7 +81,7 @@ impl SongMetadata for IndexDetails {
             self.genre().unwrap_or(""),
             self.disc().unwrap_or(0).to_string().as_str(),
         ]
-        .join("\";\"");
+            .join("\";\"");
         format!("\"{}\"", rev)
     }
 }

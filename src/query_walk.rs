@@ -5,6 +5,7 @@ use pest::Parser;
 
 use crate::playlist::Playlist;
 use crate::song::Song;
+use crate::song_metadata::IndexDetails;
 use crate::song_tag_checker::{SearchType, SongTagChecker};
 use crate::string_extractor::{InnerStringExtractor, RuleExtractor, StringExtractor};
 
@@ -13,7 +14,7 @@ use crate::string_extractor::{InnerStringExtractor, RuleExtractor, StringExtract
 struct ExprParser;
 
 pub fn query_walk(
-    vec: &Vec<Song>,
+    vec: &[Song],
     playlist_vec: &Vec<Playlist>,
     query: &str,
 ) -> Option<Vec<String>> {
@@ -21,19 +22,20 @@ pub fn query_walk(
 
     let export = parse_result.next()?.as_rule();
 
-    let songs = filter_query_expr(vec, playlist_vec, parse_result.next()?);
+    let details_vec = vec.iter().filter_map(|e| e.index()).collect::<Vec<IndexDetails>>();
+
+    let songs = filter_query_expr(&details_vec, playlist_vec, parse_result.next()?);
 
     match export {
         Rule::play => Some(
             songs?
                 .iter()
-                .map(|song| song.path().as_path().display().to_string())
+                .map(|song| song.path.clone())
                 .collect(),
         ),
         Rule::index => Some(
             songs?
                 .iter()
-                .filter_map(|song| song.metadata())
                 .map(|tag| tag.details())
                 .collect(),
         ),
@@ -51,10 +53,10 @@ pub fn query_type_is_play(query: &str) -> bool {
 }
 
 fn filter_query_expr(
-    vec: &Vec<Song>,
+    vec: &Vec<IndexDetails>,
     playlist_vec: &Vec<Playlist>,
     pair: Pair<Rule>,
-) -> Option<Vec<Song>> {
+) -> Option<Vec<IndexDetails>> {
     let mut pairs = pair.into_inner();
     let mut final_songs = filter_token(vec, playlist_vec, pairs.next()?)?;
     loop {
@@ -69,10 +71,10 @@ fn filter_query_expr(
 }
 
 fn filter_token(
-    vec: &Vec<Song>,
+    vec: &Vec<IndexDetails>,
     playlist_vec: &Vec<Playlist>,
     pair: Pair<Rule>,
-) -> Option<Vec<Song>> {
+) -> Option<Vec<IndexDetails>> {
     let mut pairs = pair.into_inner();
     let first = pairs.next()?;
 
@@ -91,10 +93,10 @@ fn filter_token(
 }
 
 fn filter_token_type(
-    vec: &Vec<Song>,
+    vec: &Vec<IndexDetails>,
     playlist_vec: &Vec<Playlist>,
     pair: Pair<Rule>,
-) -> Option<Vec<Song>> {
+) -> Option<Vec<IndexDetails>> {
     match pair.as_rule() {
         Rule::simple_token => filter_simple_token(vec, playlist_vec, pair.into_inner().next()?),
         Rule::rec_token => filter_query_expr(vec, playlist_vec, pair.into_inner().next()?),
@@ -106,10 +108,10 @@ fn filter_token_type(
 }
 
 fn filter_simple_token(
-    vec: &[Song],
+    vec: &[IndexDetails],
     playlist_vec: &[Playlist],
     pair: Pair<Rule>,
-) -> Option<Vec<Song>> {
+) -> Option<Vec<IndexDetails>> {
     match pair.as_rule() {
         Rule::playlist => {
             let first = pair.inner_str()?;
@@ -132,7 +134,7 @@ fn filter_simple_token(
     }
 }
 
-fn filter_songs_by_tag(vec: &[Song], pair: Pair<Rule>) -> Option<Vec<Song>> {
+fn filter_songs_by_tag(vec: &[IndexDetails], pair: Pair<Rule>) -> Option<Vec<IndexDetails>> {
     let pair = &mut pair.into_inner();
 
     let search_type = match pair.next()?.as_rule() {
