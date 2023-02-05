@@ -57,6 +57,17 @@ mod tests {
     use crate::tag::checker::{SearchType, TagChecker};
 
     #[test]
+    fn search_type_can_be_compared() {
+        assert!(SearchType::Literal == SearchType::Literal);
+        assert!(SearchType::Regex == SearchType::Regex);
+        assert!(SearchType::Contains == SearchType::Contains);
+
+        assert!(SearchType::Regex != SearchType::Literal);
+        assert!(SearchType::Literal != SearchType::Contains);
+        assert!(SearchType::Contains != SearchType::Regex);
+    }
+
+    #[test]
     fn song_tag_checker_is_valid_1() {
         let checker = TagChecker::new(
             String::from("drake"),
@@ -79,9 +90,9 @@ mod tests {
     #[test]
     fn song_tag_checker_is_valid_3() {
         let checker = TagChecker::new(
-            String::from("Permanent Damage"),
+            String::from("Damage"),
             String::from("album"),
-            SearchType::Literal,
+            SearchType::Contains,
         );
         assert!(checker.is_some());
     }
@@ -102,6 +113,26 @@ mod tests {
             String::from("1980"),
             String::from("afterdate"),
             SearchType::Literal,
+        );
+        assert!(checker.is_some());
+    }
+
+    #[test]
+    fn song_tag_checker_is_valid_6() {
+        let checker = TagChecker::new(
+            String::from("1980"),
+            String::from("beforeyear"),
+            SearchType::Literal,
+        );
+        assert!(checker.is_some());
+    }
+
+    #[test]
+    fn song_tag_checker_is_valid_7() {
+        let checker = TagChecker::new(
+            String::from("a.*"),
+            String::from("album"),
+            SearchType::Regex,
         );
         assert!(checker.is_some());
     }
@@ -132,6 +163,36 @@ mod tests {
             String::from("1980"),
             String::from("beforedate"),
             SearchType::Regex,
+        );
+        assert!(checker.is_none());
+    }
+
+    #[test]
+    fn song_tag_checker_is_not_valid_4() {
+        let checker = TagChecker::new(
+            String::from("a|*"),
+            String::from("album"),
+            SearchType::Regex,
+        );
+        assert!(checker.is_none());
+    }
+
+    #[test]
+    fn song_tag_checker_is_not_valid_5() {
+        let checker = TagChecker::new(
+            String::from("aa"),
+            String::from("beforedate"),
+            SearchType::Literal,
+        );
+        assert!(checker.is_none());
+    }
+
+    #[test]
+    fn song_tag_checker_is_not_valid_6() {
+        let checker = TagChecker::new(
+            String::from("aa"),
+            String::from("afterdate"),
+            SearchType::Literal,
         );
         assert!(checker.is_none());
     }
