@@ -13,16 +13,18 @@ pub struct TagDetails {
     pub year: Option<String>,
     pub genre: Option<String>,
     pub disc: Option<String>,
+    pub track: Option<String>,
 }
 
 impl TagDetails {
     pub fn headers() -> String {
-        String::from(r#""path";"title";"artist";"album";"album_artist";"year";"genre";"disc""#)
+        String::from(r#""path";"track";"title";"artist";"album";"album_artist";"year";"genre";"disc""#)
     }
 
     pub fn details(&self) -> String {
         let rev = [
             self.path.as_str(),
+            self.track.as_deref().unwrap_or("0"),
             self.title.as_deref().unwrap_or(""),
             self.artist.as_deref().unwrap_or(""),
             self.album.as_deref().unwrap_or(""),
@@ -43,7 +45,7 @@ mod tests {
 
     #[test]
     fn tag_details_prints_headers_correctly() {
-        assert_eq!("\"path\";\"title\";\"artist\";\"album\";\"album_artist\";\"year\";\"genre\";\"disc\"", TagDetails::headers());
+        assert_eq!("\"path\";\"track\";\"title\";\"artist\";\"album\";\"album_artist\";\"year\";\"genre\";\"disc\"", TagDetails::headers());
     }
 
     #[test]
@@ -57,8 +59,9 @@ mod tests {
             year: Some(String::from("2017")),
             genre: Some(String::from("Rap")),
             disc: Some(String::from("1")),
+            track: Some(String::from("6")),
         };
-        assert_eq!(r#""test-data/songs/1.mp3";"Passionfruit";"Drake";"More Life";"Drake";"2017";"Rap";"1""#, info.details());
+        assert_eq!(r#""test-data/songs/1.mp3";"6";"Passionfruit";"Drake";"More Life";"Drake";"2017";"Rap";"1""#, info.details());
         assert_eq!(info.path, "test-data/songs/1.mp3");
         assert_eq!(info.title.unwrap(), "Passionfruit");
         assert_eq!(info.artist.unwrap(), "Drake");
@@ -67,6 +70,7 @@ mod tests {
         assert_eq!(info.year.unwrap(), "2017");
         assert_eq!(info.genre.unwrap(), "Rap");
         assert_eq!(info.disc.unwrap(), "1");
+        assert_eq!(info.track.unwrap(), "6");
     }
 
     #[test]
@@ -80,7 +84,8 @@ mod tests {
             year: None,
             genre: None,
             disc: None,
+            track: None
         };
-        assert_eq!(r#""test-data/songs/1.mp3";"";"";"";"";"0";"";"0""#, info.details())
+        assert_eq!(r#""test-data/songs/1.mp3";"0";"";"";"";"";"0";"";"0""#, info.details())
     }
 }
