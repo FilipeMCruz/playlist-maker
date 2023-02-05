@@ -1,13 +1,11 @@
 #[macro_use]
 extern crate pest_derive;
 
-mod path_matching;
-mod playlist;
-mod query_walk;
+mod path;
+mod id3;
+mod query;
 mod song;
-mod song_metadata;
-mod song_tag_checker;
-mod string_extractor;
+mod tag;
 
 use std::fs::File;
 use std::io::Write;
@@ -21,13 +19,13 @@ use clap::Parser;
 
 use walkdir::WalkDir;
 
-use path_matching::ExtensionExtractor;
-use playlist::Playlist;
+use song::playlist::Playlist;
 
-use crate::query_walk::{query_type_is_play, query_walk};
-use crate::song::Song;
-use crate::song::Song::Indexed;
-use crate::song_metadata::IndexDetails;
+use crate::path::matching::ExtensionExtractor;
+use crate::query::processor;
+use crate::song::info::SongInfo;
+use crate::song::info::SongInfo::Indexed;
+use crate::tag::details::TagDetails;
 
 #[macro_use]
 extern crate serde_derive;
@@ -63,14 +61,14 @@ fn main() {
 
     let chunks_songs = divide_songs_by_threads(all_songs);
 
-    let export_type = query_type_is_play(&cli.query);
+    let export_type = processor::is_play(&cli.query);
 
     let final_play = query_songs(&cli.query, playlist_vec, chunks_songs);
 
     print(&final_play, cli.output.as_deref(), export_type);
 }
 
-fn divide_songs_by_threads(all_songs: Vec<Song>) -> Vec<Vec<Song>> {
+fn divide_songs_by_threads(all_songs: Vec<SongInfo>) -> Vec<Vec<SongInfo>> {
     all_songs
         .chunks(all_songs.len() / num_cpus::get())
         .map(|songs| songs.to_vec())
@@ -80,7 +78,7 @@ fn divide_songs_by_threads(all_songs: Vec<Song>) -> Vec<Vec<Song>> {
 fn query_songs(
     query: &str,
     playlist_vec: Vec<Playlist>,
-    chunks_songs: Vec<Vec<Song>>,
+    chunks_songs: Vec<Vec<SongInfo>>,
 ) -> Vec<String> {
     let mut handles = Vec::new();
     let final_play = Arc::new(Mutex::new(Vec::new()));
@@ -91,7 +89,7 @@ fn query_songs(
 
         let cloned_v = final_play.clone();
         let handle = thread::spawn(move || {
-            if let Some(arr) = query_walk(&chunk, &playlists, &query_copy) {
+            if let Some(arr) = processor::process(&chunk, &playlists, &query_copy) {
                 cloned_v.lock().unwrap().extend(arr)
             }
         });
@@ -105,7 +103,7 @@ fn query_songs(
     final_playlist
 }
 
-fn get_songs(input: Vec<PathBuf>) -> Vec<Song> {
+fn get_songs(input: Vec<PathBuf>) -> Vec<SongInfo> {
     input
         .iter()
         .filter(|dir| dir.is_dir() || dir.is_file())
@@ -119,39 +117,39 @@ fn get_songs(input: Vec<PathBuf>) -> Vec<Song> {
         .collect()
 }
 
-fn export(file: PathBuf) -> Vec<Song> {
+fn export(file: PathBuf) -> Vec<SongInfo> {
     csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b';')
         .double_quote(true)
         .from_path(file.into_os_string())
         .expect("Invalid File")
-        .deserialize::<IndexDetails>()
+        .deserialize::<TagDetails>()
         .filter(|record| record.is_ok())
         .map(|record| Indexed(record.unwrap()))
-        .collect::<Vec<Song>>()
+        .collect::<Vec<SongInfo>>()
 }
 
-fn walk(dir: PathBuf) -> Vec<Song> {
+fn walk(dir: PathBuf) -> Vec<SongInfo> {
     WalkDir::new(dir)
         .into_iter()
-        .filter_entry(|entry| entry.path().match_extension_or_dir("mp3"))
+        .filter_entry(|entry| entry.path().is_dir_or_has_extension("mp3"))
         .map(|entry| entry.unwrap().into_path())
         .filter(|entry| entry.is_file())
-        .map(Song::Real)
-        .collect::<Vec<Song>>()
+        .map(SongInfo::Local)
+        .collect::<Vec<SongInfo>>()
 }
 
 fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
     let mut playlist_vec = Vec::new();
     for playlist in playlists {
         let path = Path::new(&playlist);
-        if path.match_extension("m3u") {
+        if path.has_extension("m3u") {
             playlist_vec.push(Playlist {
                 name: path.display().to_string(),
                 songs: BufReader::new(File::open(path).unwrap())
                     .lines()
-                    .map(|line| line.unwrap())
+                    .filter_map(|line| line.ok())
                     .collect(),
             });
         } else {
@@ -169,7 +167,7 @@ fn print(vec: &[String], output: Option<&Path>, is_play: bool) {
     match (output, is_play) {
         (None, true) => vec.iter().for_each(|song| println!("{}", song)),
         (None, false) => {
-            println!("{}", IndexDetails::headers());
+            println!("{}", TagDetails::headers());
             vec.iter().for_each(|song| println!("{}", song));
         }
         (Some(out), true) => {
@@ -179,7 +177,7 @@ fn print(vec: &[String], output: Option<&Path>, is_play: bool) {
         }
         (Some(out), false) => {
             let mut file = File::create(out).unwrap();
-            writeln!(&mut file, "{}", IndexDetails::headers()).unwrap();
+            writeln!(&mut file, "{}", TagDetails::headers()).unwrap();
             vec.iter()
                 .for_each(|song| writeln!(&mut file, "{}", song).unwrap());
         }
