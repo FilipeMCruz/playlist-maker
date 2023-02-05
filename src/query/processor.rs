@@ -3,47 +3,36 @@ use std::process::exit;
 use pest::iterators::Pair;
 use pest::Parser;
 
-use crate::playlist::Playlist;
-use crate::song::Song;
-use crate::song_metadata::IndexDetails;
-use crate::song_tag_checker::{SearchType, SongTagChecker};
-use crate::string_extractor::{InnerStringExtractor, RuleExtractor, StringExtractor};
+use crate::query::string_extractor::{InnerStringExtractor, RuleExtractor, StringExtractor};
+use crate::song::info::SongInfo;
+use crate::song::playlist::Playlist;
+use crate::tag::checker::{SearchType, TagChecker};
+use crate::tag::details::TagDetails;
 
 #[derive(Parser)]
-#[grammar = "grammar.pest"] // relative to src
-struct ExprParser;
+#[grammar = "query/grammar.pest"] // relative to src
+pub struct ExprParser;
 
-pub fn query_walk(
-    vec: &[Song],
-    playlist_vec: &Vec<Playlist>,
-    query: &str,
-) -> Option<Vec<String>> {
+pub fn process(vec: &[SongInfo], playlist_vec: &Vec<Playlist>, query: &str) -> Option<Vec<String>> {
     let mut parse_result = ExprParser::parse(Rule::query, query).ok()?;
 
     let export = parse_result.next()?.as_rule();
 
-    let details_vec = vec.iter().filter_map(|e| e.index()).collect::<Vec<IndexDetails>>();
+    let details_vec = vec
+        .iter()
+        .filter_map(|e| e.extract_info())
+        .collect::<Vec<TagDetails>>();
 
     let songs = filter_query_expr(&details_vec, playlist_vec, parse_result.next()?);
 
     match export {
-        Rule::play => Some(
-            songs?
-                .iter()
-                .map(|song| song.path.clone())
-                .collect(),
-        ),
-        Rule::index => Some(
-            songs?
-                .iter()
-                .map(|tag| tag.details())
-                .collect(),
-        ),
+        Rule::play => Some(songs?.iter().map(|song| song.path.clone()).collect()),
+        Rule::index => Some(songs?.iter().map(|tag| tag.details()).collect()),
         _ => None,
     }
 }
 
-pub fn query_type_is_play(query: &str) -> bool {
+pub fn is_play(query: &str) -> bool {
     let mut parse_result = ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
         println!("{}", error);
         exit(2);
@@ -53,10 +42,10 @@ pub fn query_type_is_play(query: &str) -> bool {
 }
 
 fn filter_query_expr(
-    vec: &Vec<IndexDetails>,
+    vec: &Vec<TagDetails>,
     playlist_vec: &Vec<Playlist>,
     pair: Pair<Rule>,
-) -> Option<Vec<IndexDetails>> {
+) -> Option<Vec<TagDetails>> {
     let mut pairs = pair.into_inner();
     let mut final_songs = filter_token(vec, playlist_vec, pairs.next()?)?;
     loop {
@@ -71,10 +60,10 @@ fn filter_query_expr(
 }
 
 fn filter_token(
-    vec: &Vec<IndexDetails>,
+    vec: &Vec<TagDetails>,
     playlist_vec: &Vec<Playlist>,
     pair: Pair<Rule>,
-) -> Option<Vec<IndexDetails>> {
+) -> Option<Vec<TagDetails>> {
     let mut pairs = pair.into_inner();
     let first = pairs.next()?;
 
@@ -93,10 +82,10 @@ fn filter_token(
 }
 
 fn filter_token_type(
-    vec: &Vec<IndexDetails>,
+    vec: &Vec<TagDetails>,
     playlist_vec: &Vec<Playlist>,
     pair: Pair<Rule>,
-) -> Option<Vec<IndexDetails>> {
+) -> Option<Vec<TagDetails>> {
     match pair.as_rule() {
         Rule::simple_token => filter_simple_token(vec, playlist_vec, pair.into_inner().next()?),
         Rule::rec_token => filter_query_expr(vec, playlist_vec, pair.into_inner().next()?),
@@ -108,10 +97,10 @@ fn filter_token_type(
 }
 
 fn filter_simple_token(
-    vec: &[IndexDetails],
+    vec: &[TagDetails],
     playlist_vec: &[Playlist],
     pair: Pair<Rule>,
-) -> Option<Vec<IndexDetails>> {
+) -> Option<Vec<TagDetails>> {
     match pair.as_rule() {
         Rule::playlist => {
             let first = pair.inner_str()?;
@@ -134,7 +123,7 @@ fn filter_simple_token(
     }
 }
 
-fn filter_songs_by_tag(vec: &[IndexDetails], pair: Pair<Rule>) -> Option<Vec<IndexDetails>> {
+fn filter_songs_by_tag(vec: &[TagDetails], pair: Pair<Rule>) -> Option<Vec<TagDetails>> {
     let pair = &mut pair.into_inner();
 
     let search_type = match pair.next()?.as_rule() {
@@ -146,5 +135,5 @@ fn filter_songs_by_tag(vec: &[IndexDetails], pair: Pair<Rule>) -> Option<Vec<Ind
     let tag_type = pair.next_str()?;
     let metadata = pair.next_str()?;
 
-    SongTagChecker::new(metadata, tag_type, search_type).map(|checker| checker.filter(vec))
+    TagChecker::new(metadata, tag_type, search_type).map(|checker| checker.filter(vec))
 }

@@ -1,4 +1,4 @@
-use crate::song_metadata::IndexDetails;
+use crate::tag::details::TagDetails;
 
 #[derive(Clone)]
 pub struct Playlist {
@@ -7,11 +7,11 @@ pub struct Playlist {
 }
 
 impl Playlist {
-    pub fn filter(&self, vec: &[IndexDetails]) -> Vec<IndexDetails> {
+    pub fn filter(&self, vec: &[TagDetails]) -> Vec<TagDetails> {
         return vec
             .iter()
             .filter(|song| self.songs.contains(&song.path))
             .map(|song| song.to_owned())
-            .collect::<Vec<IndexDetails>>();
+            .collect::<Vec<TagDetails>>();
     }
 }
