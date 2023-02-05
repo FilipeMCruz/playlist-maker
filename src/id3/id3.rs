@@ -18,9 +18,9 @@ impl TagDetailsMapper for Tag {
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
-    use id3::Tag;
     use crate::tag::details::TagDetailsMapper;
+    use id3::Tag;
+    use std::path::Path;
 
     #[test]
     fn basic_id3_v23_tags_can_be_extracted() {
@@ -29,11 +29,12 @@ mod tests {
         assert!(tag.is_ok());
         let info = tag.unwrap().to_details("test-data/songs/1.mp3");
         assert_eq!(info.path, "test-data/songs/1.mp3");
+        assert_eq!(info.title.unwrap(), "Passionfruit");
+        assert_eq!(info.artist.unwrap(), "Drake");
         assert_eq!(info.album.unwrap(), "More Life");
         assert_eq!(info.album_artist.unwrap(), "Drake");
-        assert_eq!(info.artist.unwrap(), "Drake");
-        assert_eq!(info.disc.unwrap(), "1");
         assert_eq!(info.year.unwrap(), "2017");
         assert_eq!(info.genre.unwrap(), "Rap");
+        assert_eq!(info.disc.unwrap(), "1");
     }
 }

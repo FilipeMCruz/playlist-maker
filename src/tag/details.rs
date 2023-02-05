@@ -17,8 +17,7 @@ pub struct TagDetails {
 
 impl TagDetails {
     pub fn headers() -> String {
-        "\"path\";\"title\";\"artist\";\"album\";\"album_artist\";\"year\";\"genre\";\"disc\""
-            .to_string()
+        String::from(r#""path";"title";"artist";"album";"album_artist";"year";"genre";"disc""#)
     }
 
     pub fn details(&self) -> String {
@@ -32,7 +31,56 @@ impl TagDetails {
             self.genre.as_deref().unwrap_or(""),
             self.disc.as_deref().unwrap_or("0"),
         ]
-        .join("\";\"");
+            .join(r#"";""#);
         format!("\"{}\"", rev)
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::tag::details::TagDetails;
+
+    #[test]
+    fn tag_details_prints_headers_correctly() {
+        assert_eq!("\"path\";\"title\";\"artist\";\"album\";\"album_artist\";\"year\";\"genre\";\"disc\"", TagDetails::headers());
+    }
+
+    #[test]
+    fn tag_details_prints_info_correctly_when_present() {
+        let info = TagDetails {
+            path: "test-data/songs/1.mp3".to_string(),
+            title: Some(String::from("Passionfruit")),
+            artist: Some(String::from("Drake")),
+            album: Some(String::from("More Life")),
+            album_artist: Some(String::from("Drake")),
+            year: Some(String::from("2017")),
+            genre: Some(String::from("Rap")),
+            disc: Some(String::from("1")),
+        };
+        assert_eq!(r#""test-data/songs/1.mp3";"Passionfruit";"Drake";"More Life";"Drake";"2017";"Rap";"1""#, info.details());
+        assert_eq!(info.path, "test-data/songs/1.mp3");
+        assert_eq!(info.title.unwrap(), "Passionfruit");
+        assert_eq!(info.artist.unwrap(), "Drake");
+        assert_eq!(info.album.unwrap(), "More Life");
+        assert_eq!(info.album_artist.unwrap(), "Drake");
+        assert_eq!(info.year.unwrap(), "2017");
+        assert_eq!(info.genre.unwrap(), "Rap");
+        assert_eq!(info.disc.unwrap(), "1");
+    }
+
+    #[test]
+    fn tag_details_prints_info_correctly_when_missing() {
+        let info = TagDetails {
+            path: "test-data/songs/1.mp3".to_string(),
+            title: None,
+            artist: None,
+            album: None,
+            album_artist: None,
+            year: None,
+            genre: None,
+            disc: None,
+        };
+        assert_eq!(r#""test-data/songs/1.mp3";"";"";"";"";"0";"";"0""#, info.details())
     }
 }

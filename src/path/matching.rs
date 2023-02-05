@@ -20,8 +20,8 @@ impl ExtensionExtractor for Path {
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
     use crate::path::matching::ExtensionExtractor;
+    use std::path::Path;
 
     #[test]
     fn match_extension_for_file_can_match() {

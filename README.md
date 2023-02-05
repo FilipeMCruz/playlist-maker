@@ -10,7 +10,7 @@ The program extracts information from Id3v2.3 tags and verifies if they match th
 
 ## Query Features
 
-Query can be build using the following tokens:
+The query can be build using the following tokens:
 
 - Main options:
   - Play (creates a playlist);
@@ -24,7 +24,7 @@ Query can be build using the following tokens:
   - beforeyear (only for literal tags);
   - afteryear (only for literal tags);
   - genre;
-  - disknumber | disc.
+  - discnumber | disc.
 - Query objects:
   - literal song tags;
   - regex in song tags (`R_`);
@@ -42,7 +42,7 @@ Query can be build using the following tokens:
 Index(Afteryear("1000"))
 ```
 
-Creates an index with all music, I'll assume.
+Creates an index with all music, assuming you don't have any song made before the year 1000.
 
 ```none
 Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))

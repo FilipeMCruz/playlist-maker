@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate pest_derive;
 
-mod path;
 mod id3;
+mod path;
 mod query;
 mod song;
 mod tag;
