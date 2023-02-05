@@ -6,7 +6,7 @@ _Playlist Maker_ is a fast and simple console application that allows users to c
 Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
 ```
 
-The program extracts information from Id3v2.3 tags and verifies if they match the query issued.  
+The program extracts information from Id3 tags and verifies if they match the query issued.  
 
 ## Query Features
 
@@ -102,7 +102,7 @@ paru -S playlist-maker-rs-git
 
 ### Problems
 
-- For some reason the id3 crate in use couldn't read id3v2.4 tags, only id3v2.3.
+- The id3 crate in use reads the id3v2.4 "year" tag as a TYER frame instead of a TDRC frame, as i was expecting.
 
 ### Future work
 
