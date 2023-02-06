@@ -10,11 +10,12 @@ pub enum TagType {
     Date,
     Genre,
     Disc,
+    Track,
 }
 
 impl TagType {
-    pub fn from(tag_type: &str, search_type: &SearchType) -> Option<Self> {
-        match (tag_type, search_type) {
+    pub fn from(tag: &str, search: &SearchType) -> Option<Self> {
+        match (tag, search) {
             ("title", _) => Some(TagType::Title),
             ("artist", _) => Some(TagType::Artist),
             ("album", _) => Some(TagType::Album),
@@ -24,19 +25,21 @@ impl TagType {
             ("beforeyear" | "afteryear", SearchType::Literal) => Some(TagType::Date),
             ("genre", _) => Some(TagType::Genre),
             ("discnumber" | "disc", _) => Some(TagType::Disc),
+            ("track" | "tracknumber", _) => Some(TagType::Track),
             _ => None,
         }
     }
 
-    pub fn collect<'a>(&'a self, metadata_tag: &'a TagDetails) -> Option<&str> {
+    pub fn collect<'a>(&'a self, tag: &'a TagDetails) -> Option<&str> {
         match self {
-            TagType::Title => metadata_tag.title.as_deref(),
-            TagType::Artist => metadata_tag.artist.as_deref(),
-            TagType::Album => metadata_tag.album.as_deref(),
-            TagType::AlbumArtist => metadata_tag.album_artist.as_deref(),
-            TagType::Date => metadata_tag.year.as_deref(),
-            TagType::Genre => metadata_tag.genre.as_deref(),
-            TagType::Disc => metadata_tag.disc.as_deref(),
+            TagType::Title => tag.title.as_deref(),
+            TagType::Artist => tag.artist.as_deref(),
+            TagType::Album => tag.album.as_deref(),
+            TagType::AlbumArtist => tag.album_artist.as_deref(),
+            TagType::Date => tag.year.as_deref(),
+            TagType::Genre => tag.genre.as_deref(),
+            TagType::Disc => tag.disc.as_deref(),
+            TagType::Track => tag.track.as_deref(),
         }
     }
 }
@@ -98,5 +101,23 @@ mod tests {
         let tag = tag_opt.unwrap();
 
         assert_eq!(tag, TagType::Title)
+    }
+
+    #[test]
+    fn tag_type_can_be_built_as_expected_7() {
+        let tag_opt = TagType::from("track", &SearchType::Literal);
+        assert!(tag_opt.is_some());
+        let tag = tag_opt.unwrap();
+
+        assert_eq!(tag, TagType::Track)
+    }
+
+    #[test]
+    fn tag_type_can_be_built_as_expected_8() {
+        let tag_opt = TagType::from("tracknumber", &SearchType::Regex);
+        assert!(tag_opt.is_some());
+        let tag = tag_opt.unwrap();
+
+        assert_eq!(tag, TagType::Track)
     }
 }

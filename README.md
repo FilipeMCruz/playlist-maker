@@ -15,7 +15,7 @@ The query can be build using the following tokens:
 - Main options:
   - Play (creates a playlist);
   - Index (creates an index, csv with song details, of all matching songs to speed up following queries).
-- Song tags (any case):
+- Song tag frames (any case):
   - title;
   - artist;
   - album;
@@ -24,6 +24,7 @@ The query can be build using the following tokens:
   - beforeyear (only for literal tags);
   - afteryear (only for literal tags);
   - genre;
+  - track | tracknumber;
   - discnumber | disc.
 - Query objects:
   - literal song tags;
