@@ -1,7 +1,10 @@
 # Playlist Maker
 
 _Playlist Maker_ is a fast and simple console application that allows users to create playlists using a query like:
+_Playlist Maker_ is a fast and simple console application that allows users to create playlists using a query like:
 
+```none
+Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
 ```none
 Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
 ```
@@ -13,29 +16,29 @@ The program extracts information from Id3 tags and verifies if they match the qu
 The query can be build using the following tokens:
 
 - Main options:
-    - Play (creates a playlist);
-    - Index (creates an index, csv with song details, of all matching songs to speed up following queries).
+  - Play (creates a playlist);
+  - Index (creates an index, csv with song details, of all matching songs to speed up following queries).
 - Song tag frames (any case):
-    - title;
-    - artist;
-    - album;
-    - albumartist;
-    - year | date;
-    - beforeyear (only for literal tags);
-    - afteryear (only for literal tags);
-    - genre;
-    - track | tracknumber;
-    - discnumber | disc.
+  - title;
+  - artist;
+  - album;
+  - albumartist;
+  - year | date;
+  - beforeyear (only for literal tags);
+  - afteryear (only for literal tags);
+  - genre;
+  - track | tracknumber;
+  - discnumber | disc.
 - Query objects:
-    - literal song tags;
-    - regex in song tags (`R_`);
-    - partial song tags (`C_`);
-    - m3u playlists.
+  - literal song tags;
+  - regex in song tags (`R_`);
+  - partial song tags (`C_`);
+  - m3u playlists.
 - Basic lang support:
-    - `and` operator (`&`);
-    - `or` operator (`|`);
-    - `not` operator (`!`);
-    - parenthesis (`()`).
+  - `and` operator (`&`);
+  - `or` operator (`|`);
+  - `not` operator (`!`);
+  - parenthesis (`()`).
 
 ## Query Examples
 
@@ -54,7 +57,7 @@ in the _old_loved_songs_ playlist.
 
 ## Command-line options
 
-```
+``` none
 Create playlists using a query language
 
 Usage: playlist-maker [OPTIONS] --query <QUERY>
