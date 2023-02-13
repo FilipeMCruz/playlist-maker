@@ -151,4 +151,10 @@ mod tests {
         assert_eq!(info.track.unwrap(), "1");
         assert_eq!(info.disc.unwrap(), "1");
     }
+
+    #[test]
+    fn missing_local_song_cant_extract_info() {
+        let local = TagDetails::try_from(&PathBuf::from("test-data/songs/none.mp3"));
+        assert!(local.is_err());
+    }
 }

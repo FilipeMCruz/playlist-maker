@@ -3,8 +3,8 @@ use std::process::exit;
 use pest::iterators::Pair;
 use pest::Parser;
 
+use crate::playlist::Playlist;
 use crate::query::string_extractor::{InnerStringExtractor, RuleExtractor, StringExtractor};
-use crate::song::playlist::Playlist;
 use crate::tag::checker::{SearchType, TagChecker};
 use crate::tag::details::TagDetails;
 
@@ -12,7 +12,11 @@ use crate::tag::details::TagDetails;
 #[grammar = "query/grammar.pest"] // relative to src
 pub struct ExprParser;
 
-pub fn process(vec: &Vec<TagDetails>, playlist_vec: &Vec<Playlist>, query: &str) -> Option<Vec<TagDetails>> {
+pub fn process(
+    vec: &Vec<TagDetails>,
+    playlist_vec: &Vec<Playlist>,
+    query: &str,
+) -> Option<Vec<TagDetails>> {
     let mut parse_result = ExprParser::parse(Rule::query, query).ok()?;
 
     parse_result.next();

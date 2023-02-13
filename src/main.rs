@@ -2,8 +2,8 @@
 extern crate pest_derive;
 
 mod path;
+mod playlist;
 mod query;
-mod song;
 mod tag;
 
 use std::fs::File;
@@ -15,15 +15,14 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use clap::Parser;
+use rayon::iter::ParallelBridge;
+use rayon::iter::ParallelIterator;
 
 use walkdir::WalkDir;
 
-use song::playlist::Playlist;
-
 use crate::path::matching::ExtensionExtractor;
+use crate::playlist::Playlist;
 use crate::query::processor;
-use crate::song::info::SongInfo;
-use crate::song::info::SongInfo::Indexed;
 use crate::tag::details::TagDetails;
 
 #[macro_use]
@@ -70,7 +69,7 @@ fn main() {
 
 fn divide_songs_by_threads(all_songs: Vec<TagDetails>) -> Vec<Vec<TagDetails>> {
     all_songs
-        .chunks(all_songs.len() /  num_cpus::get())
+        .chunks(all_songs.len() / num_cpus::get())
         .map(|songs| songs.to_vec())
         .collect::<Vec<Vec<_>>>()
 }
@@ -114,11 +113,10 @@ fn get_songs(input: Vec<PathBuf>) -> Vec<TagDetails> {
                 export(dir.to_owned())
             }
         })
-        .filter_map(|song| song.extract_info())
         .collect()
 }
 
-fn export(file: PathBuf) -> Vec<SongInfo> {
+fn export(file: PathBuf) -> Vec<TagDetails> {
     csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b';')
@@ -126,19 +124,19 @@ fn export(file: PathBuf) -> Vec<SongInfo> {
         .from_path(file.into_os_string())
         .expect("Invalid File")
         .deserialize::<TagDetails>()
-        .filter(|record| record.is_ok())
-        .map(|record| Indexed(Box::new(record.unwrap())))
-        .collect::<Vec<SongInfo>>()
+        .filter_map(|record| record.ok())
+        .collect::<Vec<TagDetails>>()
 }
 
-fn walk(dir: PathBuf) -> Vec<SongInfo> {
+fn walk(dir: PathBuf) -> Vec<TagDetails> {
     WalkDir::new(dir)
         .into_iter()
         .filter_entry(|entry| entry.path().is_dir_or_has_extension("mp3"))
+        .par_bridge()
         .map(|entry| entry.unwrap().into_path())
         .filter(|entry| entry.is_file())
-        .map(SongInfo::Local)
-        .collect::<Vec<SongInfo>>()
+        .filter_map(|path| TagDetails::try_from(&path).ok())
+        .collect::<Vec<TagDetails>>()
 }
 
 fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
@@ -166,8 +164,16 @@ fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
 
 fn print(info: &[TagDetails], output: Option<&Path>, is_play: bool) {
     let content = match is_play {
-        true => info.iter().map(|song| song.path.clone()).collect::<Vec<String>>().join("\n"),
-        false => info.iter().map(|tag| tag.to_string()).collect::<Vec<String>>().join("\n"),
+        true => info
+            .iter()
+            .map(|song| song.path.clone())
+            .collect::<Vec<String>>()
+            .join("\n"),
+        false => info
+            .iter()
+            .map(|tag| tag.to_string())
+            .collect::<Vec<String>>()
+            .join("\n"),
     };
 
     match (output, is_play) {

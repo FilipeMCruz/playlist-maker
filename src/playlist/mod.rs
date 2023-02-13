@@ -18,7 +18,7 @@ impl Playlist {
 
 #[cfg(test)]
 mod tests {
-    use crate::song::playlist::Playlist;
+    use crate::playlist::Playlist;
     use crate::tag::details::TagDetails;
 
     #[test]
