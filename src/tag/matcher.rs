@@ -20,11 +20,10 @@ impl TagMatcher {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use regex::Regex;
     use crate::tag::matcher::TagMatcher;
+    use regex::Regex;
 
     #[test]
     fn tag_matcher_works_as_expected_1() {

@@ -16,10 +16,10 @@ pub struct TagChecker {
 }
 
 impl TagChecker {
-    pub fn new(exp: String, tag: String, search_type: SearchType) -> Option<Self> {
+    pub fn try_from(exp: String, tag: String, search_type: SearchType) -> Option<Self> {
         let tag_type = tag.to_lowercase();
 
-        match TagType::from(tag_type.as_str(), &search_type) {
+        match TagType::try_from(tag_type.as_str(), &search_type) {
             Some(tag) => Some(Self {
                 matcher: match search_type {
                     SearchType::Regex => TagMatcher::Regex(Regex::new(exp.as_str()).ok()?),
@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_valid_1() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("drake"),
             String::from("artist"),
             SearchType::Literal,
@@ -79,7 +79,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_valid_2() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("drake"),
             String::from("albumartist"),
             SearchType::Literal,
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_valid_3() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("Damage"),
             String::from("album"),
             SearchType::Contains,
@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_valid_4() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("1980"),
             String::from("year"),
             SearchType::Literal,
@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_valid_5() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("1980"),
             String::from("afterdate"),
             SearchType::Literal,
@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_valid_6() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("1980"),
             String::from("beforeyear"),
             SearchType::Literal,
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_valid_7() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("a.*"),
             String::from("album"),
             SearchType::Regex,
@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_not_valid_1() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("1980"),
             String::from("afterdate"),
             SearchType::Contains,
@@ -149,7 +149,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_not_valid_2() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("1980"),
             String::from("afterdate"),
             SearchType::Regex,
@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_not_valid_3() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("1980"),
             String::from("beforedate"),
             SearchType::Regex,
@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_not_valid_4() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("a|*"),
             String::from("album"),
             SearchType::Regex,
@@ -179,7 +179,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_not_valid_5() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("aa"),
             String::from("beforedate"),
             SearchType::Literal,
@@ -189,7 +189,7 @@ mod tests {
 
     #[test]
     fn song_tag_checker_is_not_valid_6() {
-        let checker = TagChecker::new(
+        let checker = TagChecker::try_from(
             String::from("aa"),
             String::from("afterdate"),
             SearchType::Literal,

@@ -14,7 +14,7 @@ pub enum TagType {
 }
 
 impl TagType {
-    pub fn from(tag: &str, search: &SearchType) -> Option<Self> {
+    pub fn try_from(tag: &str, search: &SearchType) -> Option<Self> {
         match (tag, search) {
             ("title", _) => Some(TagType::Title),
             ("artist", _) => Some(TagType::Artist),
@@ -51,7 +51,7 @@ mod tests {
 
     #[test]
     fn tag_type_can_be_built_as_expected_1() {
-        let tag_opt = TagType::from("genre", &SearchType::Literal);
+        let tag_opt = TagType::try_from("genre", &SearchType::Literal);
         assert!(tag_opt.is_some());
         let tag = tag_opt.unwrap();
 
@@ -60,7 +60,7 @@ mod tests {
 
     #[test]
     fn tag_type_can_be_built_as_expected_2() {
-        let tag_opt = TagType::from("albumartist", &SearchType::Regex);
+        let tag_opt = TagType::try_from("albumartist", &SearchType::Regex);
         assert!(tag_opt.is_some());
         let tag = tag_opt.unwrap();
 
@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     fn tag_type_can_be_built_as_expected_3() {
-        let tag_opt = TagType::from("album", &SearchType::Contains);
+        let tag_opt = TagType::try_from("album", &SearchType::Contains);
         assert!(tag_opt.is_some());
         let tag = tag_opt.unwrap();
 
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn tag_type_can_be_built_as_expected_4() {
-        let tag_opt = TagType::from("disc", &SearchType::Contains);
+        let tag_opt = TagType::try_from("disc", &SearchType::Contains);
         assert!(tag_opt.is_some());
         let tag = tag_opt.unwrap();
 
@@ -87,7 +87,7 @@ mod tests {
 
     #[test]
     fn tag_type_can_be_built_as_expected_5() {
-        let tag_opt = TagType::from("discnumber", &SearchType::Contains);
+        let tag_opt = TagType::try_from("discnumber", &SearchType::Contains);
         assert!(tag_opt.is_some());
         let tag = tag_opt.unwrap();
 
@@ -96,7 +96,7 @@ mod tests {
 
     #[test]
     fn tag_type_can_be_built_as_expected_6() {
-        let tag_opt = TagType::from("title", &SearchType::Contains);
+        let tag_opt = TagType::try_from("title", &SearchType::Contains);
         assert!(tag_opt.is_some());
         let tag = tag_opt.unwrap();
 
@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn tag_type_can_be_built_as_expected_7() {
-        let tag_opt = TagType::from("track", &SearchType::Literal);
+        let tag_opt = TagType::try_from("track", &SearchType::Literal);
         assert!(tag_opt.is_some());
         let tag = tag_opt.unwrap();
 
@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn tag_type_can_be_built_as_expected_8() {
-        let tag_opt = TagType::from("tracknumber", &SearchType::Regex);
+        let tag_opt = TagType::try_from("tracknumber", &SearchType::Regex);
         assert!(tag_opt.is_some());
         let tag = tag_opt.unwrap();
 
