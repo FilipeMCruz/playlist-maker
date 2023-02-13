@@ -4,7 +4,6 @@ use pest::iterators::Pair;
 use pest::Parser;
 
 use crate::query::string_extractor::{InnerStringExtractor, RuleExtractor, StringExtractor};
-use crate::song::info::SongInfo;
 use crate::song::playlist::Playlist;
 use crate::tag::checker::{SearchType, TagChecker};
 use crate::tag::details::TagDetails;
@@ -13,23 +12,12 @@ use crate::tag::details::TagDetails;
 #[grammar = "query/grammar.pest"] // relative to src
 pub struct ExprParser;
 
-pub fn process(vec: &[SongInfo], playlist_vec: &Vec<Playlist>, query: &str) -> Option<Vec<String>> {
+pub fn process(vec: &Vec<TagDetails>, playlist_vec: &Vec<Playlist>, query: &str) -> Option<Vec<TagDetails>> {
     let mut parse_result = ExprParser::parse(Rule::query, query).ok()?;
 
-    let export = parse_result.next()?.as_rule();
+    parse_result.next();
 
-    let details_vec = vec
-        .iter()
-        .filter_map(|e| e.extract_info())
-        .collect::<Vec<TagDetails>>();
-
-    let songs = filter_query_expr(&details_vec, playlist_vec, parse_result.next()?);
-
-    match export {
-        Rule::play => Some(songs?.iter().map(|song| song.path.clone()).collect()),
-        Rule::index => Some(songs?.iter().map(|tag| tag.to_string()).collect()),
-        _ => None,
-    }
+    filter_query_expr(vec, playlist_vec, parse_result.next()?)
 }
 
 pub fn is_play(query: &str) -> bool {
