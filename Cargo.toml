@@ -5,8 +5,8 @@ authors = ["FilipeMCruz <filipeCruz@tuta.io>"]
 edition = "2021"
 
 [dependencies]
-pest = "2.5.3"
-pest_derive = "2.5.3"
+pest = "2.5.5"
+pest_derive = "2.5.5"
 walkdir = "2.3.2"
 id3 = "1.5.1"
 regex = "1.7.1"
@@ -19,3 +19,6 @@ serde_derive = "1"
 version = "4.1.1"
 default-features = false
 features = ["derive", "std", "help", "usage", "suggestions", "color"]
+
+[profile.dev.package."*"]
+opt-level = 3

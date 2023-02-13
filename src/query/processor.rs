@@ -27,7 +27,7 @@ pub fn process(vec: &[SongInfo], playlist_vec: &Vec<Playlist>, query: &str) -> O
 
     match export {
         Rule::play => Some(songs?.iter().map(|song| song.path.clone()).collect()),
-        Rule::index => Some(songs?.iter().map(|tag| tag.details()).collect()),
+        Rule::index => Some(songs?.iter().map(|tag| tag.to_string()).collect()),
         _ => None,
     }
 }
@@ -135,5 +135,5 @@ fn filter_songs_by_tag(vec: &[TagDetails], pair: Pair<Rule>) -> Option<Vec<TagDe
     let tag_type = pair.next_str()?;
     let metadata = pair.next_str()?;
 
-    TagChecker::new(metadata, tag_type, search_type).map(|checker| checker.filter(vec))
+    TagChecker::try_from(metadata, tag_type, search_type).map(|checker| checker.filter(vec))
 }

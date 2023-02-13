@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate pest_derive;
 
-mod id3;
 mod path;
 mod query;
 mod song;
@@ -29,6 +28,7 @@ use crate::tag::details::TagDetails;
 
 #[macro_use]
 extern crate serde_derive;
+extern crate core;
 
 /// Create playlists using a query language
 #[derive(Parser, Debug)]
@@ -70,7 +70,7 @@ fn main() {
 
 fn divide_songs_by_threads(all_songs: Vec<SongInfo>) -> Vec<Vec<SongInfo>> {
     all_songs
-        .chunks(all_songs.len() / num_cpus::get())
+        .chunks(all_songs.len() /*/  num_cpus::get()*/)
         .map(|songs| songs.to_vec())
         .collect::<Vec<Vec<_>>>()
 }
@@ -126,7 +126,7 @@ fn export(file: PathBuf) -> Vec<SongInfo> {
         .expect("Invalid File")
         .deserialize::<TagDetails>()
         .filter(|record| record.is_ok())
-        .map(|record| Indexed(record.unwrap()))
+        .map(|record| Indexed(Box::new(record.unwrap())))
         .collect::<Vec<SongInfo>>()
 }
 
@@ -146,7 +146,7 @@ fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
         let path = Path::new(&playlist);
         if path.has_extension("m3u") {
             playlist_vec.push(Playlist {
-                name: path.display().to_string(),
+                name: path.file_stem().unwrap().to_string_lossy().to_string(),
                 songs: BufReader::new(File::open(path).unwrap())
                     .lines()
                     .filter_map(|line| line.ok())
