@@ -68,9 +68,9 @@ fn main() {
     print(&final_play, cli.output.as_deref(), export_type);
 }
 
-fn divide_songs_by_threads(all_songs: Vec<SongInfo>) -> Vec<Vec<SongInfo>> {
+fn divide_songs_by_threads(all_songs: Vec<TagDetails>) -> Vec<Vec<TagDetails>> {
     all_songs
-        .chunks(all_songs.len() /*/  num_cpus::get()*/)
+        .chunks(all_songs.len() /  num_cpus::get())
         .map(|songs| songs.to_vec())
         .collect::<Vec<Vec<_>>>()
 }
@@ -78,8 +78,8 @@ fn divide_songs_by_threads(all_songs: Vec<SongInfo>) -> Vec<Vec<SongInfo>> {
 fn query_songs(
     query: &str,
     playlist_vec: Vec<Playlist>,
-    chunks_songs: Vec<Vec<SongInfo>>,
-) -> Vec<String> {
+    chunks_songs: Vec<Vec<TagDetails>>,
+) -> Vec<TagDetails> {
     let mut handles = Vec::new();
     let final_play = Arc::new(Mutex::new(Vec::new()));
     for chunk in chunks_songs {
@@ -97,13 +97,13 @@ fn query_songs(
     }
     handles
         .into_iter()
-        .for_each(|handle| handle.join().expect("Could not join on main threads"));
+        .for_each(|handle| handle.join().expect("Could not join on main thread"));
 
     let final_playlist = final_play.lock().unwrap().to_vec();
     final_playlist
 }
 
-fn get_songs(input: Vec<PathBuf>) -> Vec<SongInfo> {
+fn get_songs(input: Vec<PathBuf>) -> Vec<TagDetails> {
     input
         .iter()
         .filter(|dir| dir.is_dir() || dir.is_file())
@@ -114,6 +114,7 @@ fn get_songs(input: Vec<PathBuf>) -> Vec<SongInfo> {
                 export(dir.to_owned())
             }
         })
+        .filter_map(|song| song.extract_info())
         .collect()
 }
 
@@ -163,23 +164,26 @@ fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
     playlist_vec
 }
 
-fn print(vec: &[String], output: Option<&Path>, is_play: bool) {
+fn print(info: &[TagDetails], output: Option<&Path>, is_play: bool) {
+    let content = match is_play {
+        true => info.iter().map(|song| song.path.clone()).collect::<Vec<String>>().join("\n"),
+        false => info.iter().map(|tag| tag.to_string()).collect::<Vec<String>>().join("\n"),
+    };
+
     match (output, is_play) {
-        (None, true) => vec.iter().for_each(|song| println!("{}", song)),
+        (None, true) => println!("{}", content),
         (None, false) => {
             println!("{}", TagDetails::headers());
-            vec.iter().for_each(|song| println!("{}", song));
+            println!("{}", content);
         }
         (Some(out), true) => {
             let mut file = File::create(out).unwrap();
-            vec.iter()
-                .for_each(|song| writeln!(&mut file, "{}", song).unwrap());
+            writeln!(&mut file, "{}", content).unwrap();
         }
         (Some(out), false) => {
             let mut file = File::create(out).unwrap();
             writeln!(&mut file, "{}", TagDetails::headers()).unwrap();
-            vec.iter()
-                .for_each(|song| writeln!(&mut file, "{}", song).unwrap());
+            writeln!(&mut file, "{}", content).unwrap();
         }
     }
 }

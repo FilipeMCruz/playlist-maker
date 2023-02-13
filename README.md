@@ -107,5 +107,4 @@ paru -S playlist-maker-rs-git
 
 ### Future work
 
-- Test the application;
-- Study how hard it is to do this for spotify or soundcloud songs/playlists.
+- Test more the application;
