@@ -27,7 +27,7 @@ mod tests {
             name: "test".to_string(),
             songs: vec![],
         }
-            .filter(default_songs().as_slice());
+        .filter(default_songs().as_slice());
 
         assert_eq!(0, filtered.len())
     }
@@ -38,7 +38,7 @@ mod tests {
             name: "test".to_string(),
             songs: vec!["test-data/songs/1.mp3".to_string()],
         }
-            .filter(default_songs().as_slice());
+        .filter(default_songs().as_slice());
 
         assert_eq!(1, filtered.len())
     }
@@ -52,7 +52,7 @@ mod tests {
                 "test-data/songs/4.mp3".to_string(),
             ],
         }
-            .filter(default_songs().as_slice());
+        .filter(default_songs().as_slice());
 
         assert_eq!(1, filtered.len())
     }
@@ -67,7 +67,7 @@ mod tests {
                 "test-data/songs/2.mp3".to_string(),
             ],
         }
-            .filter(default_songs().as_slice());
+        .filter(default_songs().as_slice());
 
         assert_eq!(2, filtered.len())
     }

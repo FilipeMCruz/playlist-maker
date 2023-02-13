@@ -62,7 +62,7 @@ fn main() {
 
     let export_type = processor::is_play(&cli.query);
 
-    let final_play = query_songs(&cli.query, playlist_vec, chunks_songs);
+    let final_play = query_songs(cli.query, playlist_vec, chunks_songs);
 
     print(&final_play, cli.output.as_deref(), export_type);
 }
@@ -75,14 +75,14 @@ fn divide_songs_by_threads(all_songs: Vec<TagDetails>) -> Vec<Vec<TagDetails>> {
 }
 
 fn query_songs(
-    query: &str,
+    query: String,
     playlist_vec: Vec<Playlist>,
     chunks_songs: Vec<Vec<TagDetails>>,
 ) -> Vec<TagDetails> {
     let mut handles = Vec::new();
     let final_play = Arc::new(Mutex::new(Vec::new()));
     for chunk in chunks_songs {
-        let query_copy = query.to_owned().clone();
+        let query_copy = query.clone();
 
         let playlists = playlist_vec.clone();
 
@@ -163,18 +163,17 @@ fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
 }
 
 fn print(info: &[TagDetails], output: Option<&Path>, is_play: bool) {
-    let content = match is_play {
-        true => info
-            .iter()
-            .map(|song| song.path.clone())
-            .collect::<Vec<String>>()
-            .join("\n"),
-        false => info
-            .iter()
-            .map(|tag| tag.to_string())
-            .collect::<Vec<String>>()
-            .join("\n"),
-    };
+    let content = info
+        .iter()
+        .map(|tag| {
+            if is_play {
+                tag.path.clone()
+            } else {
+                tag.to_string()
+            }
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
 
     match (output, is_play) {
         (None, true) => println!("{}", content),

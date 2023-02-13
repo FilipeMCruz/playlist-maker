@@ -65,7 +65,6 @@ impl TryFrom<&PathBuf> for TagDetails {
                     None => tag.date_recorded().map(|t| t.year),
                 }
                 .map(|e| e.to_string()),
-                ..Default::default()
             }
         })
     }
