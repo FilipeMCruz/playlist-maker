@@ -1,10 +1,7 @@
 # Playlist Maker
 
 _Playlist Maker_ is a fast and simple console application that allows users to create playlists using a query like:
-_Playlist Maker_ is a fast and simple console application that allows users to create playlists using a query like:
 
-```none
-Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
 ```none
 Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
 ```
@@ -43,10 +40,10 @@ The query can be build using the following tokens:
 ## Query Examples
 
 ```none
-Index(Afteryear("1000"))
+Index(Afteryear("100"))
 ```
 
-Creates an index with all music, assuming you don't have any song made before the year 1000.
+Creates an index with all music, assuming you don't have any song made before the year 100.
 
 ```none
 Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))

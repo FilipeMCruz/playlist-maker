@@ -102,7 +102,8 @@ fn filter_tag(vec: &[TagDetails], tag: Pair<Rule>) -> Option<Vec<TagDetails>> {
     let search_type = match pair.next()?.as_rule() {
         Rule::regex => SearchType::Regex,
         Rule::contains => SearchType::Contains,
-        _ => SearchType::Literal,
+        Rule::empty => SearchType::Literal,
+        _ => unreachable!(),
     };
 
     let tag_type = pair.next_str()?;
@@ -352,9 +353,9 @@ mod tests {
             Rule::query_expr,
             r#"AlbumArtist("Surf") | InPlaylist("def")"#,
         )
-        .unwrap()
-        .next()
-        .unwrap();
+            .unwrap()
+            .next()
+            .unwrap();
         let songs = default_songs();
         let playlists = default_playlist();
 
@@ -379,9 +380,9 @@ mod tests {
             Rule::query_expr,
             r#"AlbumArtist("Surf") & InPlaylist("def")"#,
         )
-        .unwrap()
-        .next()
-        .unwrap();
+            .unwrap()
+            .next()
+            .unwrap();
         let songs = default_songs();
         let playlists = default_playlist();
 
@@ -418,9 +419,9 @@ mod tests {
             Rule::query_expr,
             r#"C_Album("Black") & (AlbumArtist("Surf") | Track("1"))"#,
         )
-        .unwrap()
-        .next()
-        .unwrap();
+            .unwrap()
+            .next()
+            .unwrap();
         let songs = default_songs();
         let playlists = default_playlist();
 

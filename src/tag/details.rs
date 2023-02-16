@@ -1,9 +1,10 @@
 use id3::{Tag, TagLike};
 use std::fmt;
 use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 
-#[derive(Clone, PartialEq, Default, Debug, Deserialize)]
+#[derive(Clone, Eq, Default, Debug, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct TagDetails {
     pub path: String,
@@ -29,16 +30,16 @@ impl Display for TagDetails {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let rev = [
             self.path.as_str(),
-            self.track.as_deref().unwrap_or("0"),
+            self.track.as_deref().unwrap_or(""),
             self.title.as_deref().unwrap_or(""),
             self.artist.as_deref().unwrap_or(""),
             self.album.as_deref().unwrap_or(""),
             self.album_artist.as_deref().unwrap_or(""),
-            self.year.as_deref().unwrap_or("0"),
+            self.year.as_deref().unwrap_or(""),
             self.genre.as_deref().unwrap_or(""),
-            self.disc.as_deref().unwrap_or("0"),
+            self.disc.as_deref().unwrap_or(""),
         ]
-        .join(r#"",""#);
+            .join(r#"",""#);
         write!(f, "\"{}\"", rev)
     }
 }
@@ -64,9 +65,21 @@ impl TryFrom<&PathBuf> for TagDetails {
                     Some(year) => Some(year),
                     None => tag.date_recorded().map(|t| t.year),
                 }
-                .map(|e| e.to_string()),
+                    .map(|e| e.to_string()),
             }
         })
+    }
+}
+
+impl Hash for TagDetails {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.path.hash(state);
+    }
+}
+
+impl PartialEq for TagDetails {
+    fn eq(&self, other: &Self) -> bool {
+        self.path == other.path
     }
 }
 
@@ -116,7 +129,7 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(
-            r#""test-data/songs/1.mp3","0","","","","","0","","0""#,
+            r#""test-data/songs/1.mp3","","","","","","","","""#,
             info.to_string()
         )
     }

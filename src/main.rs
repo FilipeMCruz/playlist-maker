@@ -9,6 +9,7 @@ mod playlist;
 mod query;
 mod tag;
 
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::Write;
 use std::io::{BufRead, BufReader};
@@ -106,16 +107,18 @@ fn query_songs(
 
 fn get_songs(input: Vec<PathBuf>) -> Vec<TagDetails> {
     input
-        .iter()
+        .into_iter()
         .filter(|dir| dir.is_dir() || dir.is_file())
         .flat_map(|dir| {
             if dir.is_dir() {
-                walk(dir.to_owned())
+                walk(dir)
             } else {
-                export(dir.to_owned())
+                export(dir)
             }
         })
-        .collect()
+        .collect::<HashSet<TagDetails>>()
+        .into_iter()
+        .collect::<Vec<TagDetails>>()
 }
 
 fn export(file: PathBuf) -> Vec<TagDetails> {
@@ -135,7 +138,7 @@ fn walk(dir: PathBuf) -> Vec<TagDetails> {
         .into_iter()
         .filter_entry(|entry| entry.path().is_dir_or_has_extension("mp3"))
         .par_bridge()
-        .map(|entry| entry.unwrap().into_path())
+        .filter_map(|entry| entry.map(|e| e.into_path()).ok())
         .filter(|entry| entry.is_file())
         .filter_map(|path| TagDetails::try_from(&path).ok())
         .collect::<Vec<TagDetails>>()
@@ -197,12 +200,18 @@ fn print(info: &[TagDetails], output: Option<&Path>, is_play: bool) {
 
 #[cfg(test)]
 mod tests {
-    use crate::export;
+    use crate::{export, get_songs};
     use std::path::PathBuf;
 
     #[test]
     fn ensure_fn_export_works_as_expected() {
         let songs = export(PathBuf::from("test-data/index.csv"));
+        assert_eq!(songs.len(), 17)
+    }
+
+    #[test]
+    fn ensure_fn_get_songs_works_as_expected() {
+        let songs = get_songs(vec![PathBuf::from("test-data/index.csv")]);
         assert_eq!(songs.len(), 13)
     }
 }

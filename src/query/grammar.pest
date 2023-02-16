@@ -31,7 +31,7 @@ tag = { ( regex | contains | empty ) ~ string ~ "(" ~ string_literal ~ ")" }
 
 playlist = { "InPlaylist(" ~ string_literal ~ ")" }
 
-string_literal = _{ ( quotes ~ string ~ quotes | quotes ~ string ~ quotes ) }
+string_literal = _{ quotes ~ string ~ quotes }
 
 quotes = _{ "\"" | "'" }
 
@@ -40,5 +40,3 @@ string = @{ char* }
 char = { ASCII_ALPHANUMERIC | WHITESPACE | "_" | "|" | "[" | "]" | "^" | "?" | "-" | "?" | "*" | "+" | "?" | "{" | "}" | "." }
 
 WHITESPACE = _{ " " | "\t" }
-
-any = _{ ANY }
