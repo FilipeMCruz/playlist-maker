@@ -117,4 +117,12 @@ mod tests {
 
         assert!(matcher.matches("ades"));
     }
+
+    #[test]
+    fn tag_matcher_works_as_expected_14() {
+        let regex = Regex::new("a.*b");
+        let matcher = TagMatcher::Regex(regex.unwrap());
+
+        assert!(!matcher.matches("Camila"));
+    }
 }

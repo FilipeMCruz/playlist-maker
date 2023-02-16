@@ -4,9 +4,10 @@ use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
 
 #[derive(Clone, PartialEq, Default, Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "snake_case")]
 pub struct TagDetails {
     pub path: String,
+    pub track: Option<String>,
     pub title: Option<String>,
     pub artist: Option<String>,
     pub album: Option<String>,
@@ -14,13 +15,12 @@ pub struct TagDetails {
     pub year: Option<String>,
     pub genre: Option<String>,
     pub disc: Option<String>,
-    pub track: Option<String>,
 }
 
 impl TagDetails {
     pub fn headers() -> String {
         String::from(
-            r#""path";"track";"title";"artist";"album";"album_artist";"year";"genre";"disc""#,
+            r#""path","track","title","artist","album","album_artist","year","genre","disc""#,
         )
     }
 }
@@ -38,7 +38,7 @@ impl Display for TagDetails {
             self.genre.as_deref().unwrap_or(""),
             self.disc.as_deref().unwrap_or("0"),
         ]
-        .join(r#"";""#);
+        .join(r#"",""#);
         write!(f, "\"{}\"", rev)
     }
 }
@@ -95,7 +95,7 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(
-            r#""test-data/songs/1.mp3";"6";"Passionfruit";"Drake";"More Life";"Drake";"2017";"Rap";"1""#,
+            r#""test-data/songs/1.mp3","6","Passionfruit","Drake","More Life","Drake","2017","Rap","1""#,
             info.to_string()
         );
         assert_eq!(info.path, "test-data/songs/1.mp3");
@@ -116,7 +116,7 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(
-            r#""test-data/songs/1.mp3";"0";"";"";"";"";"0";"";"0""#,
+            r#""test-data/songs/1.mp3","0","","","","","0","","0""#,
             info.to_string()
         )
     }

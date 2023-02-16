@@ -5,17 +5,13 @@ play = { "Play" }
 
 index = { "Index" }
 
-query_expr = { token ~ (operator ~ token)* }
+query_expr = { maybe_not_token ~ (operator ~ maybe_not_token)* }
 
-token = { not? ~ ( simple_token | rec_token ) }
+maybe_not_token = { not? ~ token }
 
-rec_token = { start_par ~ query_expr ~ end_par }
+rec_token = { "(" ~ query_expr ~ ")" }
 
-simple_token = { playlist | tag }
-
-start_par = _{ "(" }
-
-end_par = _{ ")" }
+token = { playlist | tag | rec_token }
 
 not = { "!" }
 
@@ -35,9 +31,9 @@ tag = { ( regex | contains | empty ) ~ string ~ "(" ~ string_literal ~ ")" }
 
 playlist = { "InPlaylist(" ~ string_literal ~ ")" }
 
-quotes = _{ "\"" | "'" }
-
 string_literal = _{ ( quotes ~ string ~ quotes | quotes ~ string ~ quotes ) }
+
+quotes = _{ "\"" | "'" }
 
 string = @{ char* }
 

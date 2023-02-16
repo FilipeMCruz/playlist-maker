@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate pest_derive;
 
+#[macro_use]
+extern crate serde_derive;
+
 mod path;
 mod playlist;
 mod query;
@@ -24,10 +27,6 @@ use crate::path::matching::ExtensionExtractor;
 use crate::playlist::Playlist;
 use crate::query::processor;
 use crate::tag::details::TagDetails;
-
-#[macro_use]
-extern crate serde_derive;
-extern crate core;
 
 /// Create playlists using a query language
 #[derive(Parser, Debug)]
@@ -68,6 +67,9 @@ fn main() {
 }
 
 fn divide_songs_by_threads(all_songs: Vec<TagDetails>) -> Vec<Vec<TagDetails>> {
+    if all_songs.is_empty() {
+        return vec![];
+    }
     all_songs
         .chunks(all_songs.len() / num_cpus::get())
         .map(|songs| songs.to_vec())
@@ -118,9 +120,9 @@ fn get_songs(input: Vec<PathBuf>) -> Vec<TagDetails> {
 
 fn export(file: PathBuf) -> Vec<TagDetails> {
     csv::ReaderBuilder::new()
-        .has_headers(false)
-        .delimiter(b';')
+        .delimiter(b',')
         .double_quote(true)
+        .has_headers(true)
         .from_path(file.into_os_string())
         .expect("Invalid File")
         .deserialize::<TagDetails>()
@@ -190,5 +192,17 @@ fn print(info: &[TagDetails], output: Option<&Path>, is_play: bool) {
             writeln!(&mut file, "{}", TagDetails::headers()).unwrap();
             writeln!(&mut file, "{}", content).unwrap();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::export;
+    use std::path::PathBuf;
+
+    #[test]
+    fn ensure_fn_export_works_as_expected() {
+        let songs = export(PathBuf::from("test-data/index.csv"));
+        assert_eq!(songs.len(), 13)
     }
 }

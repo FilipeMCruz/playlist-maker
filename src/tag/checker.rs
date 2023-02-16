@@ -55,6 +55,7 @@ impl TagChecker {
 #[cfg(test)]
 mod tests {
     use crate::tag::checker::{SearchType, TagChecker};
+    use crate::tag::details::TagDetails;
 
     #[test]
     fn search_type_can_be_compared() {
@@ -195,5 +196,22 @@ mod tests {
             SearchType::Literal,
         );
         assert!(checker.is_none());
+    }
+
+    #[test]
+    fn song_tag_checker_filter_works_as_expected_1() {
+        let output = TagChecker::try_from(
+            String::from("a.*b"),
+            String::from("artist"),
+            SearchType::Regex,
+        );
+        let info = TagDetails {
+            path: "test-data/songs/1.mp3".to_string(),
+            artist: Some(String::from("Camila")),
+            ..Default::default()
+        };
+        assert!(output.is_some());
+        let selected = output.unwrap().filter(vec![info].as_slice());
+        assert_eq!(selected.len(), 0);
     }
 }
