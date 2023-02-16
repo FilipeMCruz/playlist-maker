@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn tag_details_prints_headers_correctly() {
-        assert_eq!("\"path\";\"track\";\"title\";\"artist\";\"album\";\"album_artist\";\"year\";\"genre\";\"disc\"", TagDetails::headers());
+        assert_eq!("\"path\",\"track\",\"title\",\"artist\",\"album\",\"album_artist\",\"year\",\"genre\",\"disc\"", TagDetails::headers());
     }
 
     #[test]

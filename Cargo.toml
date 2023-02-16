@@ -8,16 +8,16 @@ edition = "2021"
 pest = "2.5.5"
 pest_derive = "2.5.5"
 walkdir = "2.3.2"
-id3 = "1.5.1"
+id3 = "1.6.0"
 regex = "1.7.1"
 num_cpus = "1.15.0"
-csv = "1.1.6"
+csv = "1.2.0"
 serde = "1"
 serde_derive = "1"
 rayon = "1.6"
 
 [dependencies.clap]
-version = "4.1.1"
+version = "4.1.6"
 default-features = false
 features = ["derive", "std", "help", "usage", "suggestions", "color"]
 
