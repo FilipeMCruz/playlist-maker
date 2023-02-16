@@ -39,7 +39,7 @@ impl Display for TagDetails {
             self.genre.as_deref().unwrap_or(""),
             self.disc.as_deref().unwrap_or(""),
         ]
-            .join(r#"",""#);
+        .join(r#"",""#);
         write!(f, "\"{}\"", rev)
     }
 }
@@ -65,7 +65,7 @@ impl TryFrom<&PathBuf> for TagDetails {
                     Some(year) => Some(year),
                     None => tag.date_recorded().map(|t| t.year),
                 }
-                    .map(|e| e.to_string()),
+                .map(|e| e.to_string()),
             }
         })
     }

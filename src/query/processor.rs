@@ -12,25 +12,36 @@ use crate::tag::details::TagDetails;
 #[grammar = "query/grammar.pest"] // relative to src
 pub struct ExprParser;
 
+#[derive(Default, Debug, Eq, PartialEq)]
+pub enum QueryType {
+    #[default]
+    Play,
+    Index,
+}
+
 pub fn process(
-    vec: &[TagDetails],
-    playlist_vec: &[Playlist],
+    songs: &[TagDetails],
+    playlists: &[Playlist],
     query: &str,
 ) -> Option<Vec<TagDetails>> {
     let mut parse_result = ExprParser::parse(Rule::query, query).ok()?;
 
     parse_result.next();
 
-    filter_query_expr(vec, playlist_vec, parse_result.next()?)
+    filter_query_expr(songs, playlists, parse_result.next()?)
 }
 
-pub fn is_play(query: &str) -> bool {
-    let mut parse_result = ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
+pub fn get_type(query: &str) -> QueryType {
+    let query_type = ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
         println!("{}", error);
         exit(2);
-    });
+    }).next().unwrap().as_rule();
 
-    matches!(parse_result.next().unwrap().as_rule(), Rule::play)
+    match query_type {
+        Rule::play => QueryType::Play,
+        Rule::index => QueryType::Index,
+        _ => unreachable!(),
+    }
 }
 
 fn filter_query_expr(
@@ -457,17 +468,17 @@ mod tests {
     }
 
     #[test]
-    fn ensure_fn_is_play_works_as_expected_1() {
-        let output = is_play(r#"Play(Album("Black"))"#);
+    fn ensure_fn_get_type_works_as_expected_1() {
+        let output = get_type(r#"Play(Album("Black"))"#);
 
-        assert!(output);
+        assert_eq!(output, QueryType::Play);
     }
 
     #[test]
-    fn ensure_fn_is_play_works_as_expected_2() {
-        let output = is_play(r#"Index(Album("Black"))"#);
+    fn ensure_fn_get_type_works_as_expected_2() {
+        let output = get_type(r#"Index(Album("Black"))"#);
 
-        assert!(!output);
+        assert_eq!(output, QueryType::Index);
     }
 
     fn default_playlist() -> Vec<Playlist> {
