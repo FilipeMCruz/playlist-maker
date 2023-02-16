@@ -68,17 +68,45 @@ pub fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
-    use crate::utils::fs::{export, get_songs};
+    use crate::utils::fs::{export, get_playlists, get_songs, walk};
 
     #[test]
     fn ensure_fn_export_works_as_expected() {
-        let songs = export(PathBuf::from("test-data/index.csv"));
+        let input = PathBuf::from("test-data/index.csv");
+        let songs = export(input);
         assert_eq!(songs.len(), 17)
     }
 
     #[test]
-    fn ensure_fn_get_songs_works_as_expected() {
-        let songs = get_songs(vec![PathBuf::from("test-data/index.csv")]);
+    fn ensure_fn_walk_works_as_expected() {
+        let input = PathBuf::from("test-data");
+        let songs = walk(input);
+        assert_eq!(songs.len(), 2)
+    }
+
+    #[test]
+    fn ensure_fn_get_songs_works_as_expected_1() {
+        let input = vec![PathBuf::from("test-data/index.csv")];
+        let songs = get_songs(input);
         assert_eq!(songs.len(), 13)
+    }
+
+    #[test]
+    fn ensure_fn_get_songs_works_as_expected_2() {
+        let input = vec![PathBuf::from("test-data/index.csv"), PathBuf::from("test-data")];
+        let songs = get_songs(input);
+        assert_eq!(songs.len(), 15)
+    }
+
+    #[test]
+    fn ensure_fn_get_playlists_works_as_expected() {
+        let input = vec![PathBuf::from("test-data/playlist.m3u")];
+        let playlists = get_playlists(input);
+        assert_eq!(playlists.len(), 1);
+        assert_eq!(playlists.get(0).unwrap().name, "playlist");
+        assert_eq!(playlists.get(0).unwrap().songs.len(), 3);
+        assert_eq!(playlists.get(0).unwrap().songs.get(0).unwrap(), "test-data/songs/1.mp3");
+        assert_eq!(playlists.get(0).unwrap().songs.get(1).unwrap(), "test-data/songs/2.mp3");
+        assert_eq!(playlists.get(0).unwrap().songs.get(2).unwrap(), "test-data/songs/3.mp3");
     }
 }
