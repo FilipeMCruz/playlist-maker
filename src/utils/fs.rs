@@ -1,13 +1,13 @@
+use crate::playlist::Playlist;
+use crate::tag::details::TagDetails;
+use crate::utils::matching::ExtensionExtractor;
+use rayon::prelude::*;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::exit;
-use rayon::prelude::*;
 use walkdir::WalkDir;
-use crate::playlist::Playlist;
-use crate::tag::details::TagDetails;
-use crate::utils::matching::ExtensionExtractor;
 
 pub fn get_songs(input: Vec<PathBuf>) -> Vec<TagDetails> {
     input
@@ -67,8 +67,8 @@ pub fn get_playlists(playlists: Vec<PathBuf>) -> Vec<Playlist> {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
     use crate::utils::fs::{export, get_playlists, get_songs, walk};
+    use std::path::PathBuf;
 
     #[test]
     fn ensure_fn_export_works_as_expected() {
@@ -93,7 +93,10 @@ mod tests {
 
     #[test]
     fn ensure_fn_get_songs_works_as_expected_2() {
-        let input = vec![PathBuf::from("test-data/index.csv"), PathBuf::from("test-data")];
+        let input = vec![
+            PathBuf::from("test-data/index.csv"),
+            PathBuf::from("test-data"),
+        ];
         let songs = get_songs(input);
         assert_eq!(songs.len(), 15)
     }
@@ -105,8 +108,17 @@ mod tests {
         assert_eq!(playlists.len(), 1);
         assert_eq!(playlists.get(0).unwrap().name, "playlist");
         assert_eq!(playlists.get(0).unwrap().songs.len(), 3);
-        assert_eq!(playlists.get(0).unwrap().songs.get(0).unwrap(), "test-data/songs/1.mp3");
-        assert_eq!(playlists.get(0).unwrap().songs.get(1).unwrap(), "test-data/songs/2.mp3");
-        assert_eq!(playlists.get(0).unwrap().songs.get(2).unwrap(), "test-data/songs/3.mp3");
+        assert_eq!(
+            playlists.get(0).unwrap().songs.get(0).unwrap(),
+            "test-data/songs/1.mp3"
+        );
+        assert_eq!(
+            playlists.get(0).unwrap().songs.get(1).unwrap(),
+            "test-data/songs/2.mp3"
+        );
+        assert_eq!(
+            playlists.get(0).unwrap().songs.get(2).unwrap(),
+            "test-data/songs/3.mp3"
+        );
     }
 }

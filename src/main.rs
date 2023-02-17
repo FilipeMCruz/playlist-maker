@@ -18,6 +18,7 @@ use crate::playlist::Playlist;
 use crate::query::processor;
 use crate::tag::details::TagDetails;
 use crate::utils::fs::{get_playlists, get_songs};
+use crate::utils::iter::AlmostEqualDivision;
 use crate::utils::printer::{Output, Printer};
 
 /// Create playlists using a query language
@@ -41,24 +42,23 @@ pub struct Cli {
 fn main() {
     let cli = build_cli();
 
-    let printer = get_printer(&cli);
+    let printer = build_printer(&cli);
 
-    let playlist_vec = get_playlists(cli.playlist);
+    let outcome = filter_songs(
+        cli.query,
+        get_playlists(cli.playlist),
+        get_songs(cli.input),
+        num_cpus::get(),
+    );
 
-    let all_songs = get_songs(cli.input);
-
-    let chunks_songs = divide_songs_by_threads(all_songs, num_cpus::get());
-
-    let final_play = filter_songs(cli.query, playlist_vec, chunks_songs);
-
-    printer.print(&final_play);
+    printer.print(&outcome);
 }
 
 fn build_cli() -> Cli {
     Cli::parse()
 }
 
-fn get_printer(cli: &Cli) -> Printer {
+fn build_printer(cli: &Cli) -> Printer {
     Printer {
         output: match cli.output.as_deref() {
             None => Output::Terminal,
@@ -68,22 +68,14 @@ fn get_printer(cli: &Cli) -> Printer {
     }
 }
 
-fn divide_songs_by_threads(all_songs: Vec<TagDetails>, div: usize) -> Vec<Vec<TagDetails>> {
-    if all_songs.is_empty() {
-        return vec![];
-    }
-    all_songs
-        .chunks(all_songs.len() / div)
-        .map(|songs| songs.to_vec())
-        .collect::<Vec<Vec<_>>>()
-}
-
 fn filter_songs(
     query: String,
     playlists: Vec<Playlist>,
-    chunks_songs: Vec<Vec<TagDetails>>,
+    chunks_songs: Vec<TagDetails>,
+    num_cpus: usize,
 ) -> Vec<TagDetails> {
     chunks_songs
+        .divide_collection_by(num_cpus)
         .par_iter()
         .filter_map(|songs| processor::process(songs, &playlists, &query))
         .flatten()

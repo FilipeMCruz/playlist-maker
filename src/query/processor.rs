@@ -1,6 +1,6 @@
 use std::process::exit;
 
-use pest::iterators::Pair;
+use pest::iterators::{Pair, Pairs};
 use pest::Parser;
 
 use crate::playlist::Playlist;
@@ -24,24 +24,22 @@ pub fn process(
     playlists: &[Playlist],
     query: &str,
 ) -> Option<Vec<TagDetails>> {
-    let mut parse_result = ExprParser::parse(Rule::query, query).ok()?;
-
-    parse_result.next();
-
-    filter_query_expr(songs, playlists, parse_result.next()?)
+    filter_query_expr(songs, playlists, parse_query(query).skip(1).next()?)
 }
 
 pub fn get_type(query: &str) -> QueryType {
-    let query_type = ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
-        println!("{}", error);
-        exit(2);
-    }).next().unwrap().as_rule();
-
-    match query_type {
+    match parse_query(query).next().unwrap().as_rule() {
         Rule::play => QueryType::Play,
         Rule::index => QueryType::Index,
         _ => unreachable!(),
     }
+}
+
+fn parse_query(query: &str) -> Pairs<Rule> {
+    ExprParser::parse(Rule::query, query).unwrap_or_else(|error| {
+        println!("{}", error);
+        exit(2);
+    })
 }
 
 fn filter_query_expr(
@@ -364,9 +362,9 @@ mod tests {
             Rule::query_expr,
             r#"AlbumArtist("Surf") | InPlaylist("def")"#,
         )
-            .unwrap()
-            .next()
-            .unwrap();
+        .unwrap()
+        .next()
+        .unwrap();
         let songs = default_songs();
         let playlists = default_playlist();
 
@@ -391,9 +389,9 @@ mod tests {
             Rule::query_expr,
             r#"AlbumArtist("Surf") & InPlaylist("def")"#,
         )
-            .unwrap()
-            .next()
-            .unwrap();
+        .unwrap()
+        .next()
+        .unwrap();
         let songs = default_songs();
         let playlists = default_playlist();
 
@@ -430,9 +428,9 @@ mod tests {
             Rule::query_expr,
             r#"C_Album("Black") & (AlbumArtist("Surf") | Track("1"))"#,
         )
-            .unwrap()
-            .next()
-            .unwrap();
+        .unwrap()
+        .next()
+        .unwrap();
         let songs = default_songs();
         let playlists = default_playlist();
 

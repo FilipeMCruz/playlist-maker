@@ -1,8 +1,8 @@
+use crate::query::processor::QueryType;
 use crate::tag::details::TagDetails;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
-use crate::query::processor::QueryType;
 
 #[derive(Default)]
 pub enum Output {
@@ -29,7 +29,7 @@ impl Printer {
             .join("\n");
         match self.print_type {
             QueryType::Play => content,
-            QueryType::Index => format!("{}\n{}", TagDetails::headers(), content)
+            QueryType::Index => format!("{}\n{}", TagDetails::headers(), content),
         }
     }
 
@@ -44,7 +44,6 @@ impl Printer {
         Some(())
     }
 }
-
 
 #[cfg(test)]
 mod tests {
