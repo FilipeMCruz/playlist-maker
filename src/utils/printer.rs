@@ -4,14 +4,14 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Debug)]
 pub enum Output {
     File(PathBuf),
     #[default]
     Terminal,
 }
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Debug)]
 pub struct Printer {
     pub output: Output,
     pub print_type: QueryType,

@@ -3,6 +3,7 @@ use crate::tag::details::TagDetails;
 
 #[derive(Debug, PartialEq)]
 pub enum TagType {
+    Path,
     Title,
     Artist,
     Album,
@@ -16,6 +17,7 @@ pub enum TagType {
 impl TagType {
     pub fn try_from(tag: &str, search: &SearchType) -> Option<Self> {
         match (tag, search) {
+            ("path", _) => Some(TagType::Path),
             ("title", _) => Some(TagType::Title),
             ("artist", _) => Some(TagType::Artist),
             ("album", _) => Some(TagType::Album),
@@ -32,6 +34,7 @@ impl TagType {
 
     pub fn collect<'a>(&'a self, tag: &'a TagDetails) -> Option<&str> {
         match self {
+            TagType::Path => Some(tag.path.as_str()),
             TagType::Title => tag.title.as_deref(),
             TagType::Artist => tag.artist.as_deref(),
             TagType::Album => tag.album.as_deref(),
@@ -119,5 +122,14 @@ mod tests {
         let tag = tag_opt.unwrap();
 
         assert_eq!(tag, TagType::Track)
+    }
+
+    #[test]
+    fn tag_type_can_be_built_as_expected_9() {
+        let tag_opt = TagType::try_from("path", &SearchType::Regex);
+        assert!(tag_opt.is_some());
+        let tag = tag_opt.unwrap();
+
+        assert_eq!(tag, TagType::Path)
     }
 }

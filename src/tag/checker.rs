@@ -139,6 +139,16 @@ mod tests {
     }
 
     #[test]
+    fn song_tag_checker_is_valid_8() {
+        let checker = TagChecker::try_from(
+            String::from("Pain Of Salvation - Progressive Metal/2016 - Remedy Lane Remixed - Cd 1/09. Dryad Of The Woods.mp3"),
+            String::from("path"),
+            SearchType::Contains,
+        );
+        assert!(checker.is_some());
+    }
+
+    #[test]
     fn song_tag_checker_is_not_valid_1() {
         let checker = TagChecker::try_from(
             String::from("1980"),

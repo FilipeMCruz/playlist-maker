@@ -16,13 +16,14 @@ The query can be build using the following tokens:
   - Play (creates a playlist);
   - Index (creates an index, csv with song details, of all matching songs to speed up following queries).
 - Song tag frames (any case):
+  - path; 
   - title;
   - artist;
   - album;
   - albumartist;
   - year | date;
-  - beforeyear (only for literal tags);
-  - afteryear (only for literal tags);
+  - beforeyear | beforedate (only for literal tags);
+  - afteryear | afterdate (only for literal tags);
   - genre;
   - track | tracknumber;
   - discnumber | disc.
@@ -44,6 +45,7 @@ Index(Afteryear("100"))
 ```
 
 Creates an index with all music, assuming you don't have any song made before the year 100.
+This index can then be used instead of the normal folder with songs. 
 
 ```none
 Play((AlbumArtist("Joji") | C_Artist("Tom Misch")) & !InPlaylist("old_loved_songs"))
@@ -109,16 +111,30 @@ I use this script to directly play the songs collected by pl-mker:
 ```sh
 # Invoke example: <script_name> 'C_Artist("Drake")'
 mpc clear
-# cut is there to normalise the path. For some reason my mpc only accepts paths starting inside $MUSIC
-pl-mker --query "Play($1)" -i $MUSIC | cut -d '/' -f 5- | mpc add
+# command cut is there to normalise the path. For some reason my mpd only accepts paths starting inside $MUSIC
+pl-mker --query "Play($1)" -i $MUSIC/index | cut -d '/' -f 5- | mpc add
 
 mpc play
 ```
 
-## Problems
+## Tips
+
+I usually index my entire music folder with:
+
+```none
+pl-mker --query 'Index(C_Artist("a") | !C_Artist("a"))' -i $MUSIC -o $MUSIC/index
+```
+
+And then use the index to create playlists faster:
+
+```none
+pl-mker --query 'Play(<your query>)' -i $MUSIC/index
+```
+
+## Small Caveats
 
 - The id3 crate in use reads the id3v2.4 "year" tag as a TYER frame instead of a TDRC frame, as i was expecting.
 
 ## Future work
 
-- Test more the application;
+- Document the application;
